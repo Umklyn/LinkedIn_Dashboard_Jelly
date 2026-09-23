@@ -247,8 +247,6 @@ function render(){
     html=`<div style="display:grid;gap:26px">
       <div class="kpis">
         ${kpi(true,fmt(p.impressions),'Impressions',delta(p.impressions,pr?.impressions))}
-        ${kpi(false,fmt(p.reached),'Personnes touchées',delta(p.reached,pr?.reached))}
-        ${kpi(false,fmt(p.engagements),'Interactions',delta(p.engagements,pr?.engagements))}
         ${kpi(false,pctFmt(rate(p)),'Taux d\'engagement',delta(rate(p),pr?rate(pr):null,true))}
         ${kpi(false,fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
       </div>
