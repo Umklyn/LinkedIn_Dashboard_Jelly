@@ -124,7 +124,7 @@ function trendChart(series,labels,curIdx){
   series.forEach((s,si)=>{
     const vals=norm[si].vals;
     if(s.type==='bar'){
-      const bw=Math.min(34,spacing*.42);
+      const bw=Math.min(64,spacing*.62);
       vals.forEach((v,i)=>{const cx=x(i),h=Math.max(2,(H-pt-pb)*v),cur=i===curIdx;
         g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="5" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;});
       return;
