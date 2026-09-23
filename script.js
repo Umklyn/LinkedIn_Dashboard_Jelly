@@ -169,7 +169,8 @@ function renderCal(){
   $('#tabs').hidden=true;
   const now=new Date();now.setHours(12,0,0,0);const today=now.toISOString().slice(0,10);
   const lastTue=tuesdays().filter(d=>d<=today).pop();
-  const days=tuesdays().filter(d=>d>=today||d===lastTue||cal[d]||all().some(x=>isoWeek(x.date)===isoWeek(d)));const nextD=days.find(d=>d>=today);
+  const hasContent=d=>{const it=cal[d];return it&&(it.topic||it.draft||(it.status&&it.status!=='idee'));};
+  const days=tuesdays().filter(d=>d>=today||d===lastTue||hasContent(d)||all().some(x=>isoWeek(x.date)===isoWeek(d)));const nextD=days.find(d=>d>=today);
   let html='<div class="cal">',month='';
   days.forEach(d=>{
     const m=dateFr(d,{month:'long',year:'numeric'});
