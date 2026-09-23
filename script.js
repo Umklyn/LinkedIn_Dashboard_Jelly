@@ -131,9 +131,8 @@ function trendChart(series,labels,curIdx){
         g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="5" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;});
       return;
     }
-    if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);let d=`M${pts[0]}`;
-      for(let i=1;i<n;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
-      g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round"/>`;}
+    if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);const d=`M${pts.map(p=>p.join(',')).join(' L')}`;
+      g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;}
     const orphan=s!==leftS&&s!==rightS;
     vals.forEach((v,i)=>{const cx=x(i),cy=y(v),cur=i===curIdx;
       g+=cur?`<circle cx="${cx}" cy="${cy}" r="8" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`
