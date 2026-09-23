@@ -147,9 +147,9 @@ h2{font:700 20px var(--font-head);margin:0}
 body:not(.present) .present-only{display:none!important}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media (max-width:860px){.grid2{grid-template-columns:1fr}}
-.gauge{background:var(--surface-2);border-radius:10px;padding:14px 16px;display:grid;gap:4px}
-.gauge b{font:700 26px var(--font-head);color:var(--accent-4)}
-.gauge span{font-size:13px;color:var(--ink-2)}
+.gauge{background:var(--surface-2);border-radius:8px;padding:8px 12px;display:flex;align-items:baseline;gap:8px}
+.gauge b{font:700 18px var(--font-head);color:var(--accent-4);white-space:nowrap}
+.gauge span{font-size:12.5px;color:var(--ink-2)}
 .donut-wrap{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
 .donut-wrap svg{width:160px;height:160px;flex:none}
 .legend{display:grid;gap:10px;flex:1;min-width:160px}
