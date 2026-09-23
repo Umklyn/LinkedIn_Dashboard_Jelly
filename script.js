@@ -241,24 +241,17 @@ function render(){
     const d=p.demographics||{};
     const ipm=p.reached?p.impressions/p.reached:null, i100=p.impressions?p.engagements/p.impressions*100:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
-    const stat=(cls,val,label,dl)=>`<div class="stat"><span class="n ${cls}">${val}</span><span class="kick">${label}</span>${dl||''}</div>`;
     const plural=(n,a,b)=>`${fmt(n)} ${n>1?b:a}`;
     const aud=(t,list,tr)=>list&&list.length?`<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]))}</div>`:'';
+    const kpi=(lead,val,label,dl)=>`<div class="kpi${lead?' lead':''}"><span class="k-l">${label}</span><span class="k-v">${val}</span>${dl||''}</div>`;
     html=`<div style="display:grid;gap:26px">
-      <section class="hero">
-        <aside class="hero-l">
-          <span class="kick">Impressions</span>
-          <span class="big">${fmt(p.impressions)}</span>
-          <span class="sub">affichages du post</span>
-          <div>${delta(p.impressions,pr?.impressions)}</div>
-        </aside>
-        <div class="hero-r">
-          ${stat('c-peri',fmt(p.reached),'Personnes touchées',delta(p.reached,pr?.reached))}
-          ${stat('c-orange',fmt(p.engagements),'Interactions',delta(p.engagements,pr?.engagements))}
-          ${stat('c-ink',pctFmt(rate(p)),'Taux d\'engagement',delta(rate(p),pr?rate(pr):null,true))}
-          ${stat('c-peri',fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
-        </div>
-      </section>
+      <div class="kpis">
+        ${kpi(true,fmt(p.impressions),'Impressions',delta(p.impressions,pr?.impressions))}
+        ${kpi(false,fmt(p.reached),'Personnes touchées',delta(p.reached,pr?.reached))}
+        ${kpi(false,fmt(p.engagements),'Interactions',delta(p.engagements,pr?.engagements))}
+        ${kpi(false,pctFmt(rate(p)),'Taux d\'engagement',delta(rate(p),pr?rate(pr):null,true))}
+        ${kpi(false,fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
+      </div>
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
           <div><h2>Impressions, personnes touchées & interactions</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
