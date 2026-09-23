@@ -261,7 +261,7 @@ function render(){
               ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
             </div>
           </div>
-          <div class="grid2" style="gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
             <div class="gauge"><b>${n1(ipm)}</b><span>impressions / personne touchée</span></div>
             <div class="gauge"><b>${n1(i100)}</b><span>interactions / 100 impressions</span></div>
           </div>
