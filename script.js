@@ -109,28 +109,34 @@ function delta(cur,prev,isRate){
 }
 
 function trendChart(series,labels,curIdx){
-  const W=1000,H=320,pl=8,pr=8,pt=20,pb=34,n=labels.length;
-  const x=i=>n===1?W/2:pl+40+(W-pl-pr-80)*i/(n-1);
+  const W=1000,H=380,pl=58,pr=58,pt=24,pb=42,n=labels.length;
+  const x=i=>n===1?W/2:pl+(W-pl-pr)*i/(n-1);
   const y=v=>H-pb-(H-pt-pb)*v;
-  const norm=series.map(s=>{const max=Math.max(...s.values,0,1);return s.values.map(v=>(v||0)/max);});
+  const bar=series.find(s=>s.type==='bar'), line=series.find(s=>s.type!=='bar');
+  const leftS=bar||series[0], rightS=series.find(s=>s!==leftS);
+  const norm=series.map(s=>{const max=niceMax(Math.max(...s.values,0,1)*1.08);return{max,vals:s.values.map(v=>(v||0)/max)};});
   let g='';
-  [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);g+=`<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;});
-  const spacing=n>1?(W-pl-pr-80)/(n-1):W;
+  [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
+    g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
+    if(leftS){const li=series.indexOf(leftS);g+=`<text x="${pl-10}" y="${yy+4}" text-anchor="end" font-size="12.5" fill="var(--ink-3)" font-family="Montserrat,sans-serif">${leftS.fmtFn(norm[li].max*f)}</text>`;}
+    if(rightS){const ri=series.indexOf(rightS);g+=`<text x="${W-pr+10}" y="${yy+4}" text-anchor="start" font-size="12.5" fill="var(--ink-3)" font-family="Montserrat,sans-serif">${rightS.fmtFn(norm[ri].max*f)}</text>`;}});
+  const spacing=n>1?(W-pl-pr)/(n-1):W-pl-pr;
   series.forEach((s,si)=>{
-    const vals=norm[si];
+    const vals=norm[si].vals;
     if(s.type==='bar'){
-      const bw=Math.min(46,spacing*.4);
+      const bw=Math.min(34,spacing*.42);
       vals.forEach((v,i)=>{const cx=x(i),h=Math.max(2,(H-pt-pb)*v),cur=i===curIdx;
-        g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="6" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;});
+        g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="5" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;});
       return;
     }
     if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);let d=`M${pts[0]}`;
       for(let i=1;i<n;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
-      g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round"/>`;}
+      g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round"/>`;}
     vals.forEach((v,i)=>{const cx=x(i),cy=y(v),cur=i===curIdx;
-      g+=cur?`<circle cx="${cx}" cy="${cy}" r="10" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="6" fill="${s.color}" stroke="var(--surface)" stroke-width="2.5"/>`
-        :`<circle cx="${cx}" cy="${cy}" r="4.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2.5"/>`;});
+      g+=cur?`<circle cx="${cx}" cy="${cy}" r="8" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`
+        :`<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;});
   });
+  g+=`<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--ink-3)"/>`;
   const hw=n===1?W:spacing;
   labels.forEach((lb,i)=>{const cx=x(i);
     g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="13" fill="${i===curIdx?'var(--ink)':'var(--ink-3)'}" font-weight="${i===curIdx?600:400}" font-family="Cambria,Caladea,Georgia,serif">${lb}</text>`;
@@ -253,23 +259,30 @@ function render(){
           ${stat('c-peri',fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
         </div>
       </section>
-      <section class="card" style="gap:18px">
-        <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque étape, en nombre de personnes</span></div>
-        ${columnChart([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']])}
-        <div class="grid2" style="gap:22px">
-          <div class="gauge"><b>${n1(ipm)}</b><span>impressions par personne touchée</span></div>
-          <div class="gauge"><b>${n1(i100)}</b><span>interactions pour 100 impressions</span></div>
-        </div>
-      </section>
-      ${p.engagements?`<section class="card" style="gap:18px">
-        <div><h2>Répartition des interactions</h2><span class="muted">${fmt(p.engagements)} interactions au total</span></div>
-        <div class="donut-wrap">
-          ${donut([['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']],p.engagements)}
-          <div class="legend">
-            ${[['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n} · ${v?Math.round(v/p.engagements*100):0}&nbsp;%</span><b>${fmt(v)}</b></div>`).join('')}
+      <div class="grid2" style="gap:22px">
+        <section class="card" style="gap:18px">
+          <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque étape, en nombre de personnes</span></div>
+          <div class="donut-wrap">
+            ${donut([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']],p.impressions+p.reached+p.engagements)}
+            <div class="legend">
+              ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
+            </div>
           </div>
-        </div>
-      </section>`:''}
+          <div class="grid2" style="gap:22px">
+            <div class="gauge"><b>${n1(ipm)}</b><span>impressions par personne touchée</span></div>
+            <div class="gauge"><b>${n1(i100)}</b><span>interactions pour 100 impressions</span></div>
+          </div>
+        </section>
+        ${p.engagements?`<section class="card" style="gap:18px">
+          <div><h2>Répartition des interactions</h2><span class="muted">${fmt(p.engagements)} interactions au total</span></div>
+          <div class="donut-wrap">
+            ${donut([['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']],p.engagements)}
+            <div class="legend">
+              ${[['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n} · ${v?Math.round(v/p.engagements*100):0}&nbsp;%</span><b>${fmt(v)}</b></div>`).join('')}
+            </div>
+          </div>
+        </section>`:''}
+      </div>
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
         <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}</div>
@@ -302,19 +315,6 @@ const IND={'Advertising Services':'Publicité','Law Practice':'Cabinets d\'avoca
 const frInd=n=>IND[n]||n;
 function hbars(list){const max=Math.max(...list.map(x=>x[1]),1);
   return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:var(--accent-3)"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
-function columnChart(rows){
-  const W=560,H=260,pt=30,pb=34,n=rows.length,gap=36;
-  const max=Math.max(...rows.map(r=>r[1]||0),1);const bw=Math.min(120,(W-(n+1)*gap)/n);
-  let g='';
-  rows.forEach(([label,val,color],i)=>{
-    const cx=gap+i*(bw+gap)+bw/2,h=Math.max(4,(H-pt-pb)*(val||0)/max),y=H-pb-h;
-    g+=`<rect x="${cx-bw/2}" y="${pt}" width="${bw}" height="${H-pt-pb}" rx="8" fill="var(--surface-2)"/>`;
-    g+=`<rect x="${cx-bw/2}" y="${y}" width="${bw}" height="${h}" rx="8" fill="${color}" data-tip="${esc(label)} · <b>${fmt(val)}</b>"/>`;
-    g+=`<text x="${cx}" y="${y-10}" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(val)}</text>`;
-    g+=`<text x="${cx}" y="${H-10}" text-anchor="middle" font-size="12.5" fill="var(--ink-2)" font-family="Montserrat,sans-serif">${esc(label)}</text>`;
-  });
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="De l'affichage à l'interaction" style="width:100%;height:auto;max-width:480px">${g}</svg>`;
-}
 function donut(items,total){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
   return `<svg viewBox="0 0 160 160" role="img" aria-label="Répartition des interactions"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">au total</text></svg>`;}
