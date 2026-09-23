@@ -249,11 +249,20 @@ function render(){
         </aside>
         <div class="hero-r">
           ${stat('c-peri',fmt(p.reached),'Personnes touchées','Membres LinkedIn différents qui ont vu le post.',delta(p.reached,pr?.reached))}
-          ${stat('c-orange',fmt(p.engagements),'Interactions',`${plural(p.reactions,'réaction','réactions')} · ${plural(p.comments,'commentaire','commentaires')} · ${plural(p.reposts,'republication','republications')}`,delta(p.engagements,pr?.engagements))}
+          ${stat('c-orange',fmt(p.engagements),'Interactions','',delta(p.engagements,pr?.engagements))}
           ${stat('c-ink',pctFmt(rate(p)),'Taux d\'engagement','Interactions ÷ impressions.',delta(rate(p),pr?rate(pr):null,true))}
           ${stat('c-peri',fmt(p.profileViews),'Vues du profil',p.followers?`${plural(p.followers,'nouvel abonné','nouveaux abonnés')}`:'Visites de ton profil depuis le post.',delta(p.profileViews,pr?.profileViews))}
         </div>
       </section>
+      ${p.engagements?`<section class="card" style="gap:18px">
+        <div><h2>Répartition des interactions</h2><span class="muted">${fmt(p.engagements)} interactions au total</span></div>
+        <div class="donut-wrap">
+          ${donut([['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']],p.engagements)}
+          <div class="legend">
+            ${[['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n} · ${v?Math.round(v/p.engagements*100):0}&nbsp;%</span><b>${fmt(v)}</b></div>`).join('')}
+          </div>
+        </div>
+      </section>`:''}
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
         <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}</div>
