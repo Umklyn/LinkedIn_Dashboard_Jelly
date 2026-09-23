@@ -4,7 +4,7 @@ const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{mi
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let posts=[], demoPosts=null, current=null, db=null, tab='res';
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
-if(!['res','evo','post'].includes(tab))tab='res';
+if(!['res','evo'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
 
 function isoWeek(iso){const d=new Date(iso+'T12:00:00');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7);}
@@ -159,7 +159,7 @@ function renderWeeks(s,p){
 let view='dash', calMore=0, cal={};
 try{cal=JSON.parse(localStorage.getItem('li-cal')||'{}')||{};}catch(e){}
 function saveCal(){try{localStorage.setItem('li-cal',JSON.stringify(cal));}catch(e){}if(db){db.doc('cal/plan').set({items:cal}).catch(()=>{});}}
-let openDraft=null, editDraft=null, pendingRow=null, calMsg='';
+let openDraft=null, editDraft=null, pendingRow=null, calMsg='', openLink=null;
 function countTxt(t){const n=[...t].length;return `<span class="${n>3000?'over':''}">${n.toLocaleString('fr-BE')} / 3 000 caractères</span> · environ les 210 premiers s'affichent avant « … voir plus »`;}
 const STATUS=[['idee','Idée'],['redac','En rédaction'],['pret','Prêt'],['pub','Publié']];
 function tuesdays(){
@@ -186,11 +186,15 @@ function renderCal(){
     const topic=it.topic||'';
     html+=`<div class="cal-r ${d===nextD?'next':''} ${d<today&&!pub?'past':''}" data-d="${d}">
       <div class="cal-d"><b>${dateFr(d,{weekday:'short',day:'numeric',month:'short'})}</b><span>Semaine ${wk}</span>${d===nextD?'<em>Prochain post</em>':''}</div>
-      <input class="topic" type="text" data-f="topic" value="${esc(topic)}" placeholder="Sujet du post" aria-label="Sujet du ${dateFr(d)}">
+      <div class="topic-row">
+        <button type="button" class="linkbtn ${it.link?'has':''}" data-link="${d}" aria-expanded="${openLink===d}" title="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}" aria-label="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}">${it.link?'🔗':'+'}</button>
+        <input class="topic" type="text" data-f="topic" value="${esc(topic)}" placeholder="Sujet du post" aria-label="Sujet du ${dateFr(d)}">
+      </div>
       <select class="st st-${st}" data-f="status" aria-label="Statut" ${pub?'disabled':''}>${STATUS.map(([k,n])=>`<option value="${k}" ${st===k?'selected':''}>${n}</option>`).join('')}</select>
       <button type="button" class="dbtn ${it.draft?'has':''}" data-draft="${d}" aria-expanded="${openDraft===d}">${it.draft?'Draft ✓':'+ Draft'}</button>
       <div class="cal-res">${pub?`<button type="button" data-open="${pub.id}">${fmt(pub.impressions)} impressions ›</button><br><label class="upd" for="file" data-row="${d}">Mettre à jour les stats</label>`:`<label class="ibtn" for="file" data-row="${d}">Importer le fichier Excel</label>`}</div>
     </div>`;
+    if(openLink===d){html+=`<div class="cal-draft" style="padding:14px 20px"><div class="link-row"><input type="text" id="link-${d}" data-linktext="${d}" value="${esc(it.link||'')}" placeholder="https://www.linkedin.com/posts/…" aria-label="Lien LinkedIn du ${dateFr(d)}"><button type="button" class="pbtn solid" data-link-save="${d}">Enregistrer</button><button type="button" class="pbtn" data-link-close="${d}">Fermer</button></div></div>`;}
     if(openDraft===d){const ed=editDraft===d||!it.draft;const pen='<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
       html+=`<div class="cal-draft"><div class="dhead"><span class="muted">Draft du post du ${dateFr(d,{weekday:'long',day:'numeric',month:'long'})}</span>${ed?'':`<button type="button" class="pen" data-edit="${d}" title="Modifier le draft" aria-label="Modifier le draft">${pen}</button>`}</div>
       ${ed?`<textarea id="draft-${d}" data-dtext="${d}" aria-label="Draft" placeholder="Écris ou colle ton post ici…">${esc(it.draft||'')}</textarea>`:`<div class="dview">${esc(it.draft)}</div>`}
@@ -203,6 +207,11 @@ function renderCal(){
     if(el.dataset.f==='topic'){const pb=all().find(x=>isoWeek(x.date)===isoWeek(d));if(pb){pb.topic=el.value;save(pb);}}
     if(el.dataset.f==='status')el.className='st st-'+el.value;}));
   $('#calmore').addEventListener('click',()=>{calMore+=4;renderCal();});
+  $('#main').querySelectorAll('[data-link]').forEach(b=>b.addEventListener('click',()=>{openLink=openLink===b.dataset.link?null:b.dataset.link;renderCal();const t=openLink&&$('#link-'+openLink);if(t){t.focus();t.select();}}));
+  const saveLink=d=>{const v=cleanUrl($('#link-'+d).value);cal[d]=cal[d]||{};cal[d].link=v;saveCal();openLink=null;renderCal();};
+  const ls=$('#main').querySelector('[data-link-save]');if(ls)ls.addEventListener('click',()=>saveLink(ls.dataset.linkSave));
+  const lc=$('#main').querySelector('[data-link-close]');if(lc)lc.addEventListener('click',()=>{openLink=null;renderCal();});
+  const li=$('#main').querySelector('[data-linktext]');if(li)li.addEventListener('keydown',e=>{if(e.key==='Enter')saveLink(li.dataset.linktext);if(e.key==='Escape'){openLink=null;renderCal();}});
   $('#main').querySelectorAll('[data-draft]').forEach(b=>b.addEventListener('click',()=>{openDraft=openDraft===b.dataset.draft?null:b.dataset.draft;editDraft=null;renderCal();const t=openDraft&&$('#draft-'+openDraft);if(t)t.focus();}));
   const ta=$('#main').querySelector('[data-dtext]');
   if(ta){let tm;ta.addEventListener('input',()=>{const d=ta.dataset.dtext;cal[d]=cal[d]||{};cal[d].draft=ta.value;ta.closest('.cal-draft').querySelector('[data-count]').innerHTML=countTxt(ta.value);
