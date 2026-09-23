@@ -233,7 +233,7 @@ function render(){
     const d=p.demographics||{};
     const ipm=p.reached?p.impressions/p.reached:null, i100=p.impressions?p.engagements/p.impressions*100:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
-    const stat=(cls,val,label,txt,dl)=>`<div class="stat"><span class="n ${cls}">${val}</span><span class="kick">${label}</span>${dl||''}${txt?`<p>${txt}</p>`:''}</div>`;
+    const stat=(cls,val,label,dl)=>`<div class="stat"><span class="n ${cls}">${val}</span><span class="kick">${label}</span>${dl||''}</div>`;
     const plural=(n,a,b)=>`${fmt(n)} ${n>1?b:a}`;
     const aud=(t,list,tr)=>list&&list.length?`<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]))}</div>`:'';
     html=`<div style="display:grid;gap:26px">
@@ -243,15 +243,20 @@ function render(){
           <span class="big">${fmt(p.impressions)}</span>
           <span class="sub">affichages du post</span>
           <div>${delta(p.impressions,pr?.impressions)}</div>
-          <hr>
-          <div class="mini"><b class="o">${n1(ipm)}</b><span>impressions par personne touchée</span></div>
-          <div class="mini"><b class="l">${n1(i100)}</b><span>interactions pour 100 impressions</span></div>
         </aside>
         <div class="hero-r">
-          ${stat('c-peri',fmt(p.reached),'Personnes touchées','Membres LinkedIn différents qui ont vu le post.',delta(p.reached,pr?.reached))}
-          ${stat('c-orange',fmt(p.engagements),'Interactions','',delta(p.engagements,pr?.engagements))}
-          ${stat('c-ink',pctFmt(rate(p)),'Taux d\'engagement','Interactions ÷ impressions.',delta(rate(p),pr?rate(pr):null,true))}
-          ${stat('c-peri',fmt(p.profileViews),'Vues du profil',p.followers?`${plural(p.followers,'nouvel abonné','nouveaux abonnés')}`:'Visites de ton profil depuis le post.',delta(p.profileViews,pr?.profileViews))}
+          ${stat('c-peri',fmt(p.reached),'Personnes touchées',delta(p.reached,pr?.reached))}
+          ${stat('c-orange',fmt(p.engagements),'Interactions',delta(p.engagements,pr?.engagements))}
+          ${stat('c-ink',pctFmt(rate(p)),'Taux d\'engagement',delta(rate(p),pr?rate(pr):null,true))}
+          ${stat('c-peri',fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
+        </div>
+      </section>
+      <section class="card" style="gap:18px">
+        <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque étape, en nombre de personnes</span></div>
+        ${funnelChart([['Impressions',p.impressions],['Personnes touchées',p.reached],['Interactions',p.engagements]])}
+        <div class="grid2" style="gap:22px">
+          <div class="gauge"><b>${n1(ipm)}</b><span>impressions par personne touchée</span></div>
+          <div class="gauge"><b>${n1(i100)}</b><span>interactions pour 100 impressions</span></div>
         </div>
       </section>
       ${p.engagements?`<section class="card" style="gap:18px">
@@ -293,6 +298,19 @@ const IND={'Advertising Services':'Publicité','Law Practice':'Cabinets d\'avoca
 const frInd=n=>IND[n]||n;
 function hbars(list){const max=Math.max(...list.map(x=>x[1]),1);
   return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:var(--accent-3)"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
+function funnelChart(rows){
+  const W=680,pr=64,rh=46,gap=16,H=rows.length*(rh+gap)-gap;
+  const max=Math.max(...rows.map(r=>r[1]||0),1);const bw=W-pr;
+  let g='';
+  rows.forEach(([label,val],i)=>{
+    const y=i*(rh+gap),w=Math.max(6,bw*(val||0)/max),op=1-i*0.28;
+    g+=`<text x="0" y="${y+15}" font-size="13" font-weight="600" fill="var(--ink-2)" font-family="Montserrat,sans-serif">${esc(label)}</text>`;
+    g+=`<rect x="0" y="${y+20}" width="${bw}" height="20" rx="10" fill="var(--surface-2)"/>`;
+    g+=`<rect x="0" y="${y+20}" width="${w}" height="20" rx="10" fill="var(--accent-4)" fill-opacity="${op}" data-tip="${esc(label)} · <b>${fmt(val)}</b>"/>`;
+    g+=`<text x="${Math.min(w+10,bw-2)}" y="${y+35}" text-anchor="${w>bw-56?'end':'start'}" font-size="15" font-weight="700" fill="${w>bw-56?'#fff':'var(--ink)'}" font-family="Cambria,Caladea,Georgia,serif">${fmt(val)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="De l'affichage à l'interaction" style="width:100%;height:auto">${g}</svg>`;
+}
 function donut(items,total){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
   return `<svg viewBox="0 0 160 160" role="img" aria-label="Répartition des interactions"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">au total</text></svg>`;}
