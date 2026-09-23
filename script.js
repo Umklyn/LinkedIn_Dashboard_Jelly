@@ -118,8 +118,8 @@ function trendChart(series,labels,curIdx){
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
     g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
-    if(leftS){const li=series.indexOf(leftS);g+=`<text x="${pl-10}" y="${yy+4}" text-anchor="end" font-size="12.5" fill="var(--ink-3)" font-family="Montserrat,sans-serif">${leftS.fmtFn(norm[li].max*f)}</text>`;}
-    if(rightS){const ri=series.indexOf(rightS);g+=`<text x="${W-pr+10}" y="${yy+4}" text-anchor="start" font-size="12.5" fill="var(--ink-3)" font-family="Montserrat,sans-serif">${rightS.fmtFn(norm[ri].max*f)}</text>`;}});
+    if(leftS){const li=series.indexOf(leftS);g+=`<text x="${pl-10}" y="${yy+4}" text-anchor="end" font-size="12.5" fill="${leftS.color}" font-family="Montserrat,sans-serif">${leftS.fmtFn(norm[li].max*f)}</text>`;}
+    if(rightS){const ri=series.indexOf(rightS);g+=`<text x="${W-pr+10}" y="${yy+4}" text-anchor="start" font-size="12.5" fill="${rightS.color}" font-family="Montserrat,sans-serif">${rightS.fmtFn(norm[ri].max*f)}</text>`;}});
   const spacing=n>1?(W-pl-pr-xPad*2)/(n-1):W-pl-pr-xPad*2;
   series.forEach((s,si)=>{
     const vals=norm[si].vals;
@@ -132,9 +132,11 @@ function trendChart(series,labels,curIdx){
     if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);let d=`M${pts[0]}`;
       for(let i=1;i<n;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
       g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round"/>`;}
+    const orphan=s!==leftS&&s!==rightS;
     vals.forEach((v,i)=>{const cx=x(i),cy=y(v),cur=i===curIdx;
       g+=cur?`<circle cx="${cx}" cy="${cy}" r="8" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`
-        :`<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;});
+        :`<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;
+      if(orphan)g+=`<text x="${cx}" y="${cy-11}" text-anchor="middle" font-size="11.5" font-weight="600" fill="${s.color}" font-family="Montserrat,sans-serif">${s.fmtFn(s.values[i])}</text>`;});
   });
   g+=`<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--ink-3)"/>`;
   const hw=n===1?W:spacing;
