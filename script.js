@@ -261,7 +261,7 @@ function render(){
       </section>
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
-          <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque étape, en nombre de personnes</span></div>
+          <div><h2>Impressions, personnes touchées & interactions</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
           <div class="donut-wrap">
             ${donut([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']],p.impressions+p.reached+p.engagements)}
             <div class="legend">
@@ -274,7 +274,7 @@ function render(){
           </div>
         </section>
         ${p.engagements?`<section class="card" style="gap:18px">
-          <div><h2>Répartition des interactions</h2><span class="muted">${fmt(p.engagements)} interactions au total</span></div>
+          <div><h2>Types d'interactions</h2><span class="muted">Réactions, commentaires, republications · ${fmt(p.engagements)} au total</span></div>
           <div class="donut-wrap">
             ${donut([['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']],p.engagements)}
             <div class="legend">
