@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s);
 const fmt=n=>n==null||isNaN(n)?'—':Math.round(n).toLocaleString('fr-BE').replace(/\u202f/g,'\u00a0');
 const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{minimumFractionDigits:d,maximumFractionDigits:d})+' %';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let posts=[], demoPosts=null, current=null, db=null, metric='impressions', tab='res';
+let posts=[], demoPosts=null, current=null, db=null, tab='res';
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
 if(!['res','evo'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
@@ -101,41 +101,31 @@ function delta(cur,prev,isRate){
   return `<span class="delta ${c}">${d>0?'▲ +':d<0?'▼ −':'= '}${Math.abs(Math.round(d*100))} %</span>`;
 }
 
-function barChart(vals,labels,fmtFn,curIdx,name,color){
-  const W=1000,H=320,pl=64,pr=10,pt=34,pb=36,n=vals.length;
-  const max=niceMax(Math.max(...vals,0)*1.12);const step=(W-pl-pr)/n,bw=Math.min(150,step*.56);
-  const y=v=>H-pb-(H-pt-pb)*v/max;let g='';
-  for(let k=0;k<=4;k++){const v=max*k/4,yy=y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-10}" y="${yy+4}" text-anchor="end" font-size="13" fill="var(--accent-3)" font-family="Montserrat,sans-serif">${fmtFn(v)}</text>`;}
-  vals.forEach((v,i)=>{const x=pl+step*i+(step-bw)/2,cur=i===curIdx,h=Math.max(1,H-pb-y(v));
-    g+=`<rect x="${x}" y="${H-pb-h}" width="${bw}" height="${h}" fill="${color}"${cur?'':' fill-opacity=".55"'}/>`;
-    const lbl=fmtFn(v),lw=lbl.length*8.4+12;
-    if(cur)g+=`<rect x="${x+bw/2-lw/2}" y="${H-pb-h-27}" width="${lw}" height="21" fill="var(--hl)"/>`;
-    g+=`<text x="${x+bw/2}" y="${H-pb-h-11}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)" font-family="Montserrat,sans-serif">${lbl}</text>`;
-    g+=`<text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="13" fill="${cur?'var(--ink)':'var(--accent-3)'}" font-weight="${cur?700:500}" font-family="Montserrat,sans-serif">${labels[i]}</text>`;
-    g+=`<rect x="${pl+step*i}" y="0" width="${step}" height="${H}" fill="transparent" data-tip="${labels[i]} · <b>${lbl}</b>"/>`;});
-  g+=`<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--ink-3)"/>`;
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} par semaine">${g}</svg>`;
+function trendChart(series,labels,curIdx){
+  const W=1000,H=320,pl=8,pr=8,pt=40,pb=34,n=labels.length;
+  const x=i=>n===1?W/2:pl+40+(W-pl-pr-80)*i/(n-1);
+  const y=v=>H-pb-(H-pt-pb)*v;
+  const norm=series.map(s=>{const max=Math.max(...s.values,0,1);return s.values.map(v=>(v||0)/max);});
+  let g='';
+  [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);g+=`<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;});
+  let lx=16;
+  series.forEach(s=>{g+=`<circle cx="${lx+6}" cy="18" r="5" fill="${s.color}"/><text x="${lx+16}" y="22" font-size="13" font-weight="600" fill="var(--ink-2)" font-family="Montserrat,sans-serif">${esc(s.name)}</text>`;lx+=s.name.length*7.4+34;});
+  series.forEach((s,si)=>{
+    const vals=norm[si];
+    if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);let d=`M${pts[0]}`;
+      for(let i=1;i<n;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
+      g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round"/>`;}
+    vals.forEach((v,i)=>{const cx=x(i),cy=y(v),cur=i===curIdx;
+      g+=cur?`<circle cx="${cx}" cy="${cy}" r="10" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="6" fill="${s.color}" stroke="var(--surface)" stroke-width="2.5"/>`
+        :`<circle cx="${cx}" cy="${cy}" r="4.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2.5"/>`;});
+  });
+  const hw=n===1?W:(W-pl-pr-80)/(n-1);
+  labels.forEach((lb,i)=>{const cx=x(i);
+    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="13" fill="${i===curIdx?'var(--ink)':'var(--ink-3)'}" font-weight="${i===curIdx?600:400}" font-family="Cambria,Caladea,Georgia,serif">${lb}</text>`;
+    const tip=series.map(s=>`${esc(s.name)} : <b>${s.fmtFn(s.values[i])}</b>`).join('<br>');
+    g+=`<rect x="${cx-hw/2}" y="0" width="${hw}" height="${H}" fill="transparent" data-tip="${lb}<br>${tip}"/>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution combinée par semaine">${g}</svg>`;
 }
-function lineChart(vals,labels,fmtFn,curIdx,name){
-  const W=1000,H=300,pl=8,pr=8,pt=40,pb=34,n=vals.length;
-  const max=niceMax(Math.max(...vals,0)*1.1);
-  const x=i=>n===1?W/2:pl+40+(W-pl-pr-80)*i/(n-1), y=v=>H-pb-(H-pt-pb)*v/max;
-  let g=`<defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--accent-4);stop-opacity:.85"/><stop offset="1" style="stop-color:var(--accent-4);stop-opacity:.1"/></linearGradient></defs>`;
-  [0,.5,1].forEach(f=>{const yy=y(max*f);g+=`<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
-    if(f)g+=`<text x="${W}" y="${yy-6}" text-anchor="end" font-size="13" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">${fmtFn(max*f)}</text>`;});
-  if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);let d=`M${pts[0]}`;
-    for(let i=1;i<n;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
-    g+=`<path d="${d} L${pts[n-1][0]},${H-pb} L${pts[0][0]},${H-pb} Z" fill="url(#gA)"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>`;}
-  vals.forEach((v,i)=>{const cx=x(i),cy=y(v),cur=i===curIdx;
-    g+=cur?`<circle cx="${cx}" cy="${cy}" r="12" fill="var(--accent)" fill-opacity=".15"/><circle cx="${cx}" cy="${cy}" r="7" fill="var(--accent)" stroke="var(--surface)" stroke-width="2.5"/><text x="${cx}" y="${cy-20}" text-anchor="middle" font-size="18" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmtFn(v)}</text>`
-      :`<circle cx="${cx}" cy="${cy}" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5"/>`;
-    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="13" fill="${cur?'var(--ink)':'var(--ink-3)'}" font-weight="${cur?600:400}" font-family="Cambria,Caladea,Georgia,serif">${labels[i]}</text>`;
-    const hw=n===1?W:(W-pl-pr-80)/(n-1);
-    g+=`<rect x="${cx-hw/2}" y="0" width="${hw}" height="${H}" fill="transparent" data-tip="${labels[i]} · <b>${fmtFn(v)}</b>"/>`;});
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} par semaine">${g}</svg>`;
-}
-
-const METRICS={impressions:['Impressions',p=>p.impressions,fmt],rate:['Engagement',rate,v=>pctFmt(v)],profileViews:['Vues du profil',p=>p.profileViews,fmt]};
 
 function renderWeeks(s,p){
   $('#wsel').innerHTML=s.length?[...s].reverse().map(x=>`<option value="${x.id}" ${x.id===p?.id?'selected':''}>Semaine ${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</option>`).join(''):'<option>Aucune semaine</option>';
@@ -252,8 +242,13 @@ function render(){
         </div>
       </section>
       <section class="card" style="gap:18px">
-        <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque étape, en nombre de personnes</span></div>
-        ${funnelChart([['Impressions',p.impressions],['Personnes touchées',p.reached],['Interactions',p.engagements]])}
+        <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque anneau, en % du précédent</span></div>
+        <div class="donut-wrap">
+          ${ringChart([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']])}
+          <div class="legend">
+            ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
+          </div>
+        </div>
         <div class="grid2" style="gap:22px">
           <div class="gauge"><b>${n1(ipm)}</b><span>impressions par personne touchée</span></div>
           <div class="gauge"><b>${n1(i100)}</b><span>interactions pour 100 impressions</span></div>
@@ -276,10 +271,15 @@ function render(){
     </div>`;
   }
   if(tab==='evo'){
-    const [mName,mFn,mFmt]=METRICS[metric];const win=s.slice(Math.max(0,idx-7),idx+1);
+    const win=s.slice(Math.max(0,idx-7),idx+1);
+    const series=[
+      {name:'Impressions',color:'var(--accent-4)',values:win.map(x=>x.impressions),fmtFn:fmt},
+      {name:'Engagement',color:'var(--accent-3)',values:win.map(x=>rate(x)),fmtFn:v=>pctFmt(v)},
+      {name:'Vues du profil',color:'var(--good)',values:win.map(x=>x.profileViews),fmtFn:fmt}
+    ];
     html=`<div style="display:grid;gap:18px"><div class="card chart">
-      <div class="card-h"><h2>${mName} par semaine</h2><div class="seg">${Object.entries(METRICS).map(([k,[n]])=>`<button type="button" data-metric="${k}" aria-pressed="${k===metric}">${n}</button>`).join('')}</div></div>
-      ${barChart(win.map(mFn),win.map(x=>'S'+isoWeek(x.date)),mFmt,win.length-1,mName,metric==='rate'?'var(--accent-4)':'var(--accent-3)')}
+      <div class="card-h"><h2>Impressions, engagement & vues du profil</h2><span class="muted">Chaque courbe indexée sur son propre maximum</span></div>
+      ${trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1)}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="card"><h2>Toutes les semaines</h2><div class="tw"><table>
@@ -298,18 +298,14 @@ const IND={'Advertising Services':'Publicité','Law Practice':'Cabinets d\'avoca
 const frInd=n=>IND[n]||n;
 function hbars(list){const max=Math.max(...list.map(x=>x[1]),1);
   return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:var(--accent-3)"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
-function funnelChart(rows){
-  const W=680,pr=64,rh=46,gap=16,H=rows.length*(rh+gap)-gap;
-  const max=Math.max(...rows.map(r=>r[1]||0),1);const bw=W-pr;
-  let g='';
-  rows.forEach(([label,val],i)=>{
-    const y=i*(rh+gap),w=Math.max(6,bw*(val||0)/max),op=1-i*0.28;
-    g+=`<text x="0" y="${y+15}" font-size="13" font-weight="600" fill="var(--ink-2)" font-family="Montserrat,sans-serif">${esc(label)}</text>`;
-    g+=`<rect x="0" y="${y+20}" width="${bw}" height="20" rx="10" fill="var(--surface-2)"/>`;
-    g+=`<rect x="0" y="${y+20}" width="${w}" height="20" rx="10" fill="var(--accent-4)" fill-opacity="${op}" data-tip="${esc(label)} · <b>${fmt(val)}</b>"/>`;
-    g+=`<text x="${Math.min(w+10,bw-2)}" y="${y+35}" text-anchor="${w>bw-56?'end':'start'}" font-size="15" font-weight="700" fill="${w>bw-56?'#fff':'var(--ink)'}" font-family="Cambria,Caladea,Georgia,serif">${fmt(val)}</text>`;
+function ringChart(rows){
+  const cx=80,cy=80,max=Math.max(...rows.map(r=>r[1]||0),1);let g='';
+  rows.forEach(([label,val,color],i)=>{
+    const R=68-i*20,SW=15,C=2*Math.PI*R,len=Math.max(0,C*(val||0)/max);
+    g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>`;
+    g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${SW}" stroke-linecap="round" stroke-dasharray="${len} ${C-len}" transform="rotate(-90 ${cx} ${cy})" data-tip="${esc(label)} · <b>${fmt(val)}</b>"/>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="De l'affichage à l'interaction" style="width:100%;height:auto">${g}</svg>`;
+  return `<svg viewBox="0 0 160 160" role="img" aria-label="De l'affichage à l'interaction">${g}</svg>`;
 }
 function donut(items,total){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
@@ -344,7 +340,6 @@ function setShot(file){
 $('#demo-off').addEventListener('click',()=>{demoPosts=null;$('#demo').hidden=true;current=null;render();});
 document.addEventListener('click',async e=>{
   if(e.target.closest('[data-demo]')){demoPosts=makeDemo();$('#demo').hidden=false;current=null;render();return;}
-  const m=e.target.closest('[data-metric]');if(m){metric=m.dataset.metric;render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
     if(d.dataset.confirm){const id=d.dataset.del;posts=posts.filter(x=>x.id!==id);try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(_){}if(db){try{await db.doc('posts/'+id).delete();}catch(_){}}if(current===id)current=null;render();}
