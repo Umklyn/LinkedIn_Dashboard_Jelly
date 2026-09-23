@@ -10,6 +10,13 @@ const all=()=>demoPosts||posts;
 function isoWeek(iso){const d=new Date(iso+'T12:00:00');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7);}
 function dateFr(iso,opt={day:'numeric',month:'long',year:'numeric'}){return new Date(iso+'T12:00:00').toLocaleDateString('fr-BE',opt);}
 const rate=p=>p.impressions?p.engagements/p.impressions:0;
+const EVO_DEFS=[
+  {key:'impressions',name:'Impressions',color:'var(--accent-4)',type:'bar',fn:p=>p.impressions,fmtFn:fmt},
+  {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'line',fn:rate,fmtFn:v=>pctFmt(v)},
+  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt}
+];
+let evoShow={impressions:true,engagement:true,views:true};
+try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
 function sorted(){return [...all()].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
 function topicFromUrl(url){const m=/\/posts\/[^_]+_(.+?)-(?:ugcPost|activity|share)-/i.exec(url||'');return m?m[1].split('-').filter(w=>w.length>2).slice(0,4).map(w=>'#'+w).join(' '):'';}
 function embedUrl(u){u=String(u||'');const src=/src=["']([^"']+)["']/.exec(u);if(src)return src[1];
@@ -102,16 +109,21 @@ function delta(cur,prev,isRate){
 }
 
 function trendChart(series,labels,curIdx){
-  const W=1000,H=320,pl=8,pr=8,pt=40,pb=34,n=labels.length;
+  const W=1000,H=320,pl=8,pr=8,pt=20,pb=34,n=labels.length;
   const x=i=>n===1?W/2:pl+40+(W-pl-pr-80)*i/(n-1);
   const y=v=>H-pb-(H-pt-pb)*v;
   const norm=series.map(s=>{const max=Math.max(...s.values,0,1);return s.values.map(v=>(v||0)/max);});
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);g+=`<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;});
-  let lx=16;
-  series.forEach(s=>{g+=`<circle cx="${lx+6}" cy="18" r="5" fill="${s.color}"/><text x="${lx+16}" y="22" font-size="13" font-weight="600" fill="var(--ink-2)" font-family="Montserrat,sans-serif">${esc(s.name)}</text>`;lx+=s.name.length*7.4+34;});
+  const spacing=n>1?(W-pl-pr-80)/(n-1):W;
   series.forEach((s,si)=>{
     const vals=norm[si];
+    if(s.type==='bar'){
+      const bw=Math.min(46,spacing*.4);
+      vals.forEach((v,i)=>{const cx=x(i),h=Math.max(2,(H-pt-pb)*v),cur=i===curIdx;
+        g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="6" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;});
+      return;
+    }
     if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);let d=`M${pts[0]}`;
       for(let i=1;i<n;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
       g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round"/>`;}
@@ -119,7 +131,7 @@ function trendChart(series,labels,curIdx){
       g+=cur?`<circle cx="${cx}" cy="${cy}" r="10" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="6" fill="${s.color}" stroke="var(--surface)" stroke-width="2.5"/>`
         :`<circle cx="${cx}" cy="${cy}" r="4.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2.5"/>`;});
   });
-  const hw=n===1?W:(W-pl-pr-80)/(n-1);
+  const hw=n===1?W:spacing;
   labels.forEach((lb,i)=>{const cx=x(i);
     g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="13" fill="${i===curIdx?'var(--ink)':'var(--ink-3)'}" font-weight="${i===curIdx?600:400}" font-family="Cambria,Caladea,Georgia,serif">${lb}</text>`;
     const tip=series.map(s=>`${esc(s.name)} : <b>${s.fmtFn(s.values[i])}</b>`).join('<br>');
@@ -242,13 +254,8 @@ function render(){
         </div>
       </section>
       <section class="card" style="gap:18px">
-        <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque anneau, en % du précédent</span></div>
-        <div class="donut-wrap">
-          ${ringChart([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']])}
-          <div class="legend">
-            ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
-          </div>
-        </div>
+        <div><h2>De l'affichage à l'interaction</h2><span class="muted">Chaque étape, en nombre de personnes</span></div>
+        ${columnChart([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']])}
         <div class="grid2" style="gap:22px">
           <div class="gauge"><b>${n1(ipm)}</b><span>impressions par personne touchée</span></div>
           <div class="gauge"><b>${n1(i100)}</b><span>interactions pour 100 impressions</span></div>
@@ -272,14 +279,11 @@ function render(){
   }
   if(tab==='evo'){
     const win=s.slice(Math.max(0,idx-7),idx+1);
-    const series=[
-      {name:'Impressions',color:'var(--accent-4)',values:win.map(x=>x.impressions),fmtFn:fmt},
-      {name:'Engagement',color:'var(--accent-3)',values:win.map(x=>rate(x)),fmtFn:v=>pctFmt(v)},
-      {name:'Vues du profil',color:'var(--good)',values:win.map(x=>x.profileViews),fmtFn:fmt}
-    ];
+    const active=EVO_DEFS.filter(d=>evoShow[d.key]);
+    const series=active.map(d=>({name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn}));
     html=`<div style="display:grid;gap:18px"><div class="card chart">
-      <div class="card-h"><h2>Impressions, engagement & vues du profil</h2><span class="muted">Chaque courbe indexée sur son propre maximum</span></div>
-      ${trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1)}
+      <div class="card-h"><h2>Évolution par semaine</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
+      ${series.length?trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="card"><h2>Toutes les semaines</h2><div class="tw"><table>
@@ -298,14 +302,18 @@ const IND={'Advertising Services':'Publicité','Law Practice':'Cabinets d\'avoca
 const frInd=n=>IND[n]||n;
 function hbars(list){const max=Math.max(...list.map(x=>x[1]),1);
   return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:var(--accent-3)"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
-function ringChart(rows){
-  const cx=80,cy=80,max=Math.max(...rows.map(r=>r[1]||0),1);let g='';
+function columnChart(rows){
+  const W=560,H=260,pt=30,pb=34,n=rows.length,gap=36;
+  const max=Math.max(...rows.map(r=>r[1]||0),1);const bw=Math.min(120,(W-(n+1)*gap)/n);
+  let g='';
   rows.forEach(([label,val,color],i)=>{
-    const R=68-i*20,SW=15,C=2*Math.PI*R,len=Math.max(0,C*(val||0)/max);
-    g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>`;
-    g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${SW}" stroke-linecap="round" stroke-dasharray="${len} ${C-len}" transform="rotate(-90 ${cx} ${cy})" data-tip="${esc(label)} · <b>${fmt(val)}</b>"/>`;
+    const cx=gap+i*(bw+gap)+bw/2,h=Math.max(4,(H-pt-pb)*(val||0)/max),y=H-pb-h;
+    g+=`<rect x="${cx-bw/2}" y="${pt}" width="${bw}" height="${H-pt-pb}" rx="8" fill="var(--surface-2)"/>`;
+    g+=`<rect x="${cx-bw/2}" y="${y}" width="${bw}" height="${h}" rx="8" fill="${color}" data-tip="${esc(label)} · <b>${fmt(val)}</b>"/>`;
+    g+=`<text x="${cx}" y="${y-10}" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(val)}</text>`;
+    g+=`<text x="${cx}" y="${H-10}" text-anchor="middle" font-size="12.5" fill="var(--ink-2)" font-family="Montserrat,sans-serif">${esc(label)}</text>`;
   });
-  return `<svg viewBox="0 0 160 160" role="img" aria-label="De l'affichage à l'interaction">${g}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="De l'affichage à l'interaction" style="width:100%;height:auto;max-width:480px">${g}</svg>`;
 }
 function donut(items,total){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
@@ -340,6 +348,7 @@ function setShot(file){
 $('#demo-off').addEventListener('click',()=>{demoPosts=null;$('#demo').hidden=true;current=null;render();});
 document.addEventListener('click',async e=>{
   if(e.target.closest('[data-demo]')){demoPosts=makeDemo();$('#demo').hidden=false;current=null;render();return;}
+  const ev=e.target.closest('[data-evo]');if(ev){evoShow[ev.dataset.evo]=!evoShow[ev.dataset.evo];try{localStorage.setItem('li-evo-show',JSON.stringify(evoShow));}catch(_){}render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
     if(d.dataset.confirm){const id=d.dataset.del;posts=posts.filter(x=>x.id!==id);try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(_){}if(db){try{await db.doc('posts/'+id).delete();}catch(_){}}if(current===id)current=null;render();}
