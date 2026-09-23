@@ -321,7 +321,7 @@ const frSen=n=>SEN[n]||n;
 
 /* events */
 function go(id){current=id;if(view==='cal'){setView('dash');}else render();}
-$('#wsel').addEventListener('change',e=>{view='dash';setView('dash');go(e.target.value);});
+$('#wsel').addEventListener('change',e=>{const id=e.target.value;view='dash';setView('dash');go(id);});
 document.addEventListener('click',e=>{const r=e.target.closest('[data-row]');pendingRow=r?r.dataset.row:pendingRow;},true);
 $('#home').addEventListener('click',()=>{tab='res';setView('dash');window.scrollTo({top:0});});
 $('#calbtn').addEventListener('click',()=>setView(view==='cal'?'dash':'cal'));
