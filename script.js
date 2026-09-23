@@ -167,7 +167,7 @@ function tuesdays(){
 function renderCal(){
   $('#head').innerHTML=`<div class="cal-h"><div><span class="eyebrow">Un post par semaine.</span><h1>Calendrier éditorial</h1><p>Un post chaque mardi · bilan le lundi suivant</p></div></div>${calMsg?`<div class="demo-banner" style="margin-top:12px">${esc(calMsg)}</div>`:''}`;calMsg='';
   $('#tabs').hidden=true;
-  const today=new Date().toISOString().slice(0,10);
+  const now=new Date();now.setHours(12,0,0,0);const today=now.toISOString().slice(0,10);
   const lastTue=tuesdays().filter(d=>d<=today).pop();
   const days=tuesdays().filter(d=>d>=today||d===lastTue||cal[d]||all().some(x=>isoWeek(x.date)===isoWeek(d)));const nextD=days.find(d=>d>=today);
   let html='<div class="cal">',month='';
