@@ -292,7 +292,7 @@ function render(){
     const series=active.map(d=>({name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined}));
     html=`<div style="display:grid;gap:18px"><div class="card chart">
       <div class="card-h"><h2>Évolution par semaine</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
-      ${evoShow.engagement?`<div class="scale-pick">Échelle Engagement : ${[.1,.5,1].map(v=>`<button type="button" data-evo-scale="${v}" aria-pressed="${evoScale===v}">${Math.round(v*100)} %</button>`).join(' · ')}</div>`:''}
+      ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
       ${series.length?trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
@@ -346,7 +346,7 @@ $('#demo-off').addEventListener('click',()=>{demoPosts=null;$('#demo').hidden=tr
 document.addEventListener('click',async e=>{
   if(e.target.closest('[data-demo]')){demoPosts=makeDemo();$('#demo').hidden=false;current=null;render();return;}
   const ev=e.target.closest('[data-evo]');if(ev){evoShow[ev.dataset.evo]=!evoShow[ev.dataset.evo];try{localStorage.setItem('li-evo-show',JSON.stringify(evoShow));}catch(_){}render();return;}
-  const es=e.target.closest('[data-evo-scale]');if(es){evoScale=parseFloat(es.dataset.evoScale);try{localStorage.setItem('li-evo-scale',JSON.stringify(evoScale));}catch(_){}render();return;}
+  const es=e.target.closest('[data-evo-scale-cycle]');if(es){const opts=[.1,.5,1];evoScale=opts[(opts.indexOf(evoScale)+1)%opts.length];try{localStorage.setItem('li-evo-scale',JSON.stringify(evoScale));}catch(_){}render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
     if(d.dataset.confirm){const id=d.dataset.del;posts=posts.filter(x=>x.id!==id);try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(_){}if(db){try{await db.doc('posts/'+id).delete();}catch(_){}}if(current===id)current=null;render();}
