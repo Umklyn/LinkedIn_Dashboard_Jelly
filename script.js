@@ -114,7 +114,7 @@ function trendChart(series,labels,curIdx){
   const y=v=>H-pb-(H-pt-pb)*v;
   const bar=series.find(s=>s.type==='bar'), line=series.find(s=>s.type!=='bar');
   const leftS=bar||series[0], rightS=series.find(s=>s!==leftS);
-  const norm=series.map(s=>{const max=niceMax(Math.max(...s.values,0,1)*1.08);return{max,vals:s.values.map(v=>(v||0)/max)};});
+  const norm=series.map(s=>{const max=niceMax(Math.max(...s.values,0)*1.08);return{max,vals:s.values.map(v=>(v||0)/max)};});
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
     g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
