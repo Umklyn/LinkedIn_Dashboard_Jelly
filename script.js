@@ -13,7 +13,7 @@ const rate=p=>p.impressions?p.engagements/p.impressions:0;
 const EVO_DEFS=[
   {key:'impressions',name:'Impressions',color:'var(--accent-4)',type:'bar',fn:p=>p.impressions,fmtFn:fmt},
   {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'line',fn:rate,fmtFn:v=>pctFmt(v)},
-  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt}
+  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt,ratioTo:'impressions',ratio:100}
 ];
 let evoShow={impressions:true,engagement:true,views:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
@@ -116,7 +116,9 @@ function trendChart(series,labels,curIdx){
   const y=v=>H-pb-(H-pt-pb)*v;
   const bar=series.find(s=>s.type==='bar'), line=series.find(s=>s.type!=='bar');
   const leftS=bar||series[0], rightS=series.find(s=>s!==leftS);
-  const norm=series.map(s=>{const max=s.fixedMax!=null?s.fixedMax:niceMax(Math.max(...s.values,0)*1.08);return{max,vals:s.values.map(v=>Math.min(1,(v||0)/max))};});
+  const norm=series.map(s=>({max:s.fixedMax!=null?s.fixedMax:niceMax(Math.max(...s.values,0)*1.08)}));
+  series.forEach((s,i)=>{if(s.ratioTo){const ti=series.findIndex(x=>x.key===s.ratioTo);if(ti>=0)norm[i].max=norm[ti].max/s.ratio;}});
+  series.forEach((s,i)=>{norm[i].vals=s.values.map(v=>Math.min(1,(v||0)/norm[i].max));});
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
     g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
@@ -288,7 +290,7 @@ function render(){
   if(tab==='evo'){
     const win=s.slice(Math.max(0,idx-7),idx+1);
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
-    const series=active.map(d=>({name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined}));
+    const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined,ratioTo:d.ratioTo,ratio:d.ratio}));
     html=`<div style="display:grid;gap:18px"><div class="card chart">
       <div class="card-h"><h2>Évolution par semaine</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
