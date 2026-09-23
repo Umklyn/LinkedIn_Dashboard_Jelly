@@ -292,7 +292,7 @@ function render(){
     const series=active.map(d=>({name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined}));
     html=`<div style="display:grid;gap:18px"><div class="card chart">
       <div class="card-h"><h2>Évolution par semaine</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
-      ${evoShow.engagement?`<div class="card-h"><span class="muted">Échelle Engagement</span><div class="seg">${[.1,.5,1].map(v=>`<button type="button" data-evo-scale="${v}" aria-pressed="${evoScale===v}">${Math.round(v*100)} %</button>`).join('')}</div></div>`:''}
+      ${evoShow.engagement?`<div class="scale-pick">Échelle Engagement : ${[.1,.5,1].map(v=>`<button type="button" data-evo-scale="${v}" aria-pressed="${evoScale===v}">${Math.round(v*100)} %</button>`).join(' · ')}</div>`:''}
       ${series.length?trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
