@@ -4,7 +4,7 @@ const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{mi
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let posts=[], demoPosts=null, current=null, db=null, tab='res';
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
-if(!['res','evo'].includes(tab))tab='res';
+if(!['res','evo','post'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
 
 function isoWeek(iso){const d=new Date(iso+'T12:00:00');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7);}
