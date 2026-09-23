@@ -198,6 +198,7 @@ tbody tr{cursor:pointer}
 .del{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
 
 .empty{background:var(--surface);border:1px dashed var(--ink-3);border-radius:14px;padding:44px 20px;text-align:center;display:grid;gap:12px;justify-items:center}
+.empty-banner{width:120px;height:auto;margin-bottom:6px}
 .empty h2{font-size:24px}
 #tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--ground);font-size:13px;padding:6px 10px;border-radius:6px;z-index:10}
 body.present .edit-only{display:none!important}
@@ -205,7 +206,8 @@ body.present .edit-only{display:none!important}
 /* ===== Style "reporting" : crème, bordeaux, orange, bleu lavande ===== */
 body{font:15px/1.55 var(--font-body)}
 button,select,.btn{font-family:var(--font-body)}
-.brand{font:700 20px var(--font-head);letter-spacing:.04em;text-transform:uppercase;color:var(--orange);text-shadow:none}
+.brand{font:700 20px var(--font-head);letter-spacing:.04em;text-transform:uppercase;color:var(--orange);text-shadow:none;display:inline-flex;align-items:center;gap:10px}
+.brand .seal{width:30px;height:30px;border-radius:50%;display:block}
 h1{font:700 clamp(28px,4vw,42px)/1.12 var(--font-head);border-left:8px solid var(--orange);padding-left:18px}
 .eyebrow{font:600 12px var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--orange);padding-left:26px}
 .meta{padding-left:26px;font-size:13px}

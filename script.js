@@ -218,7 +218,7 @@ function render(){
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.tab===tab));
   if(!p){
     $('#head').innerHTML='';$('#tabs').hidden=true;
-    $('#main').innerHTML=`<div class="empty"><h2>Importe ton premier post</h2><p class="muted">Sur LinkedIn : ton post → Statistiques → Exporter. Puis ouvre le Calendrier et clique « Importer les stats » sur la bonne semaine.</p><p><button type="button" class="dbtn" onclick="setView('cal')">Ouvrir le calendrier</button></p></div>`;return;
+    $('#main').innerHTML=`<div class="empty"><img src="publicis-banner.png" alt="" class="empty-banner"><h2>Importe ton premier post</h2><p class="muted">Sur LinkedIn : ton post → Statistiques → Exporter. Puis ouvre le Calendrier et clique « Importer les stats » sur la bonne semaine.</p><p><button type="button" class="dbtn" onclick="setView('cal')">Ouvrir le calendrier</button></p></div>`;return;
   }
   $('#tabs').hidden=false;
   current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;
