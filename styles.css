@@ -111,8 +111,9 @@ h2{font:700 20px var(--font-head);margin:0}
 .cal-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .cal-h p{margin:4px 0 0;color:var(--ink-3);font-size:14px}
 .cal{display:grid;gap:12px}
-.cal-m{padding:10px 2px 0;font:700 17px var(--font-head);text-transform:capitalize;color:var(--ink)}
-.cal-r{display:grid;grid-template-columns:120px minmax(0,1fr) 130px 100px 190px;gap:14px;align-items:center;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.cal-m{padding:10px 2px 6px;font:700 17px var(--font-head);text-transform:capitalize;color:var(--ink);border-bottom:1px solid var(--line)}
+.cal-r{display:grid;grid-template-columns:64px minmax(0,1fr) 140px 110px 190px;gap:14px;align-items:center;padding:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:box-shadow .15s,transform .15s}
+.cal-r:hover{box-shadow:0 4px 14px rgba(0,0,0,.07);transform:translateY(-1px)}
 .dbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;cursor:pointer;color:var(--ink);font-weight:600;white-space:nowrap}
 .ibtn{display:inline-block;border:1px solid var(--line);background:none;color:var(--brand);border-radius:999px;padding:7px 12px;cursor:pointer;font-weight:600;white-space:nowrap;font-size:13.5px}
 .ibtn:hover{background:var(--surface-2)}
@@ -134,12 +135,13 @@ h2{font:700 20px var(--font-head);margin:0}
 .dview{white-space:pre-wrap;font:15px/1.6 var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;max-height:420px;overflow:auto}
 .dbtns{display:flex;gap:8px;flex-wrap:wrap}
 .cal-draft .over{color:var(--bad);font-weight:700}
-.cal-r.next{background:color-mix(in srgb,var(--hl) 45%,transparent);border-color:var(--orange)}
-.cal-r.past .cal-d{opacity:.75}
-.cal-d{display:grid;line-height:1.25}
-.cal-d b{font:700 16px var(--font-head)}
-.cal-d span{font-size:12.5px;color:var(--ink-3)}
-.cal-d em{font-style:italic;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border-radius:4px;padding:1px 6px;justify-self:start;margin-top:3px}
+.cal-r.next{background:color-mix(in srgb,var(--hl) 30%,var(--surface));border-color:var(--orange)}
+.cal-r.past{opacity:.72}
+.cal-d{display:grid;justify-items:center;align-content:center;gap:2px;width:56px;height:56px;border-radius:12px;background:var(--surface-2);justify-self:start;cursor:default}
+.cal-num{font:700 20px/1 var(--font-head);color:var(--ink)}
+.cal-wm{font:600 9.5px/1.2 var(--font-body);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);text-align:center}
+.cal-r.next .cal-d{background:var(--orange);box-shadow:0 2px 8px rgba(255,61,0,.35)}
+.cal-r.next .cal-num,.cal-r.next .cal-wm{color:#fff}
 .cal-r input,.cal-r select{font:14px var(--font-body);color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 .cal-r select.st{font-weight:600;border-color:transparent}
 .st-idee{background:var(--surface-2)!important}
@@ -220,6 +222,7 @@ h1{font:700 clamp(28px,4vw,42px)/1.12 var(--font-head);border-left:8px solid var
 .tab{font:500 15px var(--font-body);color:var(--ink-3);border-bottom-width:3px}
 .tab[aria-selected="true"]{background:none;color:var(--ink);font-weight:700;border-bottom-color:var(--orange)}
 .card{border-radius:4px;box-shadow:none}
+.kpi{border-radius:4px}
 h2{font:700 19px var(--font-head)}
 .delta{font:600 12px var(--font-body);border-radius:3px}
 /* audience */
@@ -238,10 +241,9 @@ thead th{background:var(--brand);color:var(--brand-ink);font:700 13px var(--font
 tr.cur td{background:var(--peri-soft)}
 .seg{border-radius:4px}.seg button{border-radius:3px}
 /* calendar */
-.cal-r{border-radius:4px}
-.cal-m{font:700 17px var(--font-head);border-bottom:2px solid var(--orange);padding-bottom:6px;display:inline-block}
-.cal-r.next{background:var(--surface);box-shadow:inset 4px 0 0 var(--orange);border-color:var(--orange)}
-.cal-d em{font:700 11px var(--font-body);font-style:normal;text-transform:uppercase;letter-spacing:.04em;border-radius:2px}
+.cal-r{border-radius:8px}
+.cal-m{border-bottom-color:var(--orange)}
+.cal-d{border-radius:8px}
 .dbtn,.ibtn,.more,.pen,.cal-draft .dfoot button,.demo-banner button{border-radius:4px}
 .pen{border-radius:4px}
 .dbtn.has{background:var(--peri-soft);border-color:var(--peri-soft)}

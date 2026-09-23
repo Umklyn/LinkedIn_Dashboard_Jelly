@@ -184,8 +184,13 @@ function renderCal(){
     const pub=all().find(x=>isoWeek(x.date)===wk&&x.date.slice(0,4)===d.slice(0,4));
     const st=pub?'pub':(it.status||'idee');
     const topic=it.topic||'';
+    const dayNum=new Date(d+'T12:00:00').getDate();
+    const wd=dateFr(d,{weekday:'short'}).replace(/\.$/,'');
+    const mo=dateFr(d,{month:'short'}).replace(/\.$/,'');
     html+=`<div class="cal-r ${d===nextD?'next':''} ${d<today&&!pub?'past':''}" data-d="${d}">
-      <div class="cal-d"><b>${dateFr(d,{weekday:'short',day:'numeric',month:'short'})}</b><span>Semaine ${wk}</span>${d===nextD?'<em>Prochain post</em>':''}</div>
+      <div class="cal-d" data-tip="Semaine ${wk}${d===nextD?' · <b>Prochain post</b>':''}" aria-label="${dateFr(d,{weekday:'long',day:'numeric',month:'long'})}, semaine ${wk}${d===nextD?', prochain post':''}">
+        <span class="cal-num">${dayNum}</span><span class="cal-wm">${wd}<br>${mo}</span>
+      </div>
       <div class="topic-row">
         <button type="button" class="linkbtn ${it.link?'has':''}" data-link="${d}" aria-expanded="${openLink===d}" title="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}" aria-label="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}">${it.link?'🔗':'+'}</button>
         <input class="topic" type="text" data-f="topic" value="${esc(topic)}" placeholder="Sujet du post" aria-label="Sujet du ${dateFr(d)}">
