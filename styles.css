@@ -107,17 +107,16 @@ h2{font:700 20px var(--font-head);margin:0}
 #calbtn[aria-pressed="true"]{background:#fff;color:var(--brand);border-color:#fff}
 .cal-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .cal-h p{margin:4px 0 0;color:var(--ink-3);font-size:14px}
-.cal{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.cal-m{padding:14px 20px 6px;font:700 17px var(--font-head);text-transform:capitalize;background:var(--ground);border-bottom:1px solid var(--line)}
-.cal-r{display:grid;grid-template-columns:120px minmax(0,1fr) 130px 100px 190px;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line)}
-.cal-r:last-child{border-bottom:0}
+.cal{display:grid;gap:12px}
+.cal-m{padding:10px 2px 0;font:700 17px var(--font-head);text-transform:capitalize;color:var(--ink)}
+.cal-r{display:grid;grid-template-columns:120px minmax(0,1fr) 130px 100px 190px;gap:14px;align-items:center;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 .dbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;cursor:pointer;color:var(--ink);font-weight:600;white-space:nowrap}
-.ibtn{display:inline-block;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);border-radius:999px;padding:7px 12px;cursor:pointer;font-weight:600;white-space:nowrap;font-size:13.5px}
-.ibtn:hover{opacity:.9}
+.ibtn{display:inline-block;border:1px solid var(--line);background:none;color:var(--brand);border-radius:999px;padding:7px 12px;cursor:pointer;font-weight:600;white-space:nowrap;font-size:13.5px}
+.ibtn:hover{background:var(--surface-2)}
 .upd{font-size:12px;color:var(--ink-3);text-decoration:underline;cursor:pointer}
 .dbtn.has{background:var(--hl);border-color:var(--hl)}
 .dbtn[aria-expanded="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
-.cal-draft{padding:4px 20px 18px 160px;border-bottom:1px solid var(--line);display:grid;gap:8px;background:color-mix(in srgb,var(--hl) 18%,transparent)}
+.cal-draft{padding:16px 20px;margin-top:-4px;display:grid;gap:8px;background:color-mix(in srgb,var(--hl) 18%,transparent);border:1px solid var(--line);border-radius:12px}
 .cal-draft textarea{min-height:220px;font:15px/1.55 var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;width:100%;resize:vertical}
 .cal-draft .dfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
 .cal-draft .dfoot button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;color:var(--ink)}
@@ -127,8 +126,7 @@ h2{font:700 20px var(--font-head);margin:0}
 .dview{white-space:pre-wrap;font:15px/1.6 var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;max-height:420px;overflow:auto}
 .dbtns{display:flex;gap:8px;flex-wrap:wrap}
 .cal-draft .over{color:var(--bad);font-weight:700}
-@media (max-width:860px){.cal-draft{padding-left:20px}}
-.cal-r.next{background:color-mix(in srgb,var(--hl) 45%,transparent)}
+.cal-r.next{background:color-mix(in srgb,var(--hl) 45%,transparent);border-color:var(--orange)}
 .cal-r.past .cal-d{opacity:.75}
 .cal-d{display:grid;line-height:1.25}
 .cal-d b{font:700 16px var(--font-head)}
@@ -232,15 +230,15 @@ thead th{background:var(--brand);color:var(--brand-ink);font:700 13px var(--font
 tr.cur td{background:var(--peri-soft)}
 .seg{border-radius:4px}.seg button{border-radius:3px}
 /* calendar */
-.cal{border-radius:4px}
-.cal-m{font:700 17px var(--font-head);background:var(--surface-2)}
-.cal-r.next{background:var(--surface);box-shadow:inset 5px 0 0 var(--orange)}
+.cal-r{border-radius:4px}
+.cal-m{font:700 17px var(--font-head);border-bottom:2px solid var(--orange);padding-bottom:6px;display:inline-block}
+.cal-r.next{background:var(--surface);box-shadow:inset 4px 0 0 var(--orange);border-color:var(--orange)}
 .cal-d em{font:700 11px var(--font-body);font-style:normal;text-transform:uppercase;letter-spacing:.04em;border-radius:2px}
 .dbtn,.ibtn,.more,.pen,.cal-draft .dfoot button,.demo-banner button{border-radius:4px}
 .pen{border-radius:4px}
 .dbtn.has{background:var(--peri-soft);border-color:var(--peri-soft)}
 .pen:hover{background:var(--peri-soft);border-color:var(--peri-soft)}
-.cal-draft{background:var(--surface-2)}
+.cal-draft{background:var(--surface-2);border-radius:4px}
 .cal-r input,.cal-r select,.cal-draft textarea,.dview{border-radius:4px}
 .demo-banner{background:var(--peri-soft);border-radius:4px}
 .week select,.btn{border-radius:4px}
