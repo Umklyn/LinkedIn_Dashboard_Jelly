@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bilan LinkedIn du lundi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caladea:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+
+<div class="bar">
+  <div class="bar-in">
+    <button class="brand" id="home" type="button" title="Retour au bilan"><img src="publicis-seal.png" alt="" class="seal">Bilan LinkedIn</button>
+    <div class="week">
+      <button class="arrow" id="prev" type="button" aria-label="Semaine précédente">‹</button>
+      <label for="wsel" hidden>Semaine</label>
+      <select id="wsel"></select>
+      <button class="arrow" id="next" type="button" aria-label="Semaine suivante">›</button>
+    </div>
+    <div class="tools">
+      <button class="btn" id="calbtn" type="button" aria-pressed="false">Calendrier</button>
+      <button class="btn" id="present" type="button">Présenter</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="status edit-only" id="status" role="status" hidden></div>
+  <div class="demo-banner" id="demo" hidden><span><b>Exemple fictif</b> pour voir le rendu sur 6 semaines — pas tes vraies données.</span><button type="button" id="demo-off">Revenir à mes données</button></div>
+  <div id="head"></div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" data-tab="res" type="button">Résultats</button>
+    <button class="tab" role="tab" data-tab="evo" type="button">Évolution</button>
+  </nav>
+  <div id="main"></div>
+</div>
+<div id="tip" hidden></div>
+<input id="file" type="file" accept=".xlsx,.xls,.csv" multiple hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="script.js"></script>
+
+</html>
