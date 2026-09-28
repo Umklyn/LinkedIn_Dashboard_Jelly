@@ -298,11 +298,8 @@ function render(){
           <div class="donut-wrap">
             ${donut([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']],p.impressions+p.reached+p.engagements,p.impressions,'impressions')}
             <div class="legend">
-              ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
+              ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>${n==='Personnes touchées'?`<div class="muted" style="font-size:12px;margin:-4px 0 4px 18px">${n1(ipm)} impressions / personne touchée</div>`:''}`).join('')}
             </div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <div class="gauge"><b>${n1(ipm)}</b><span>impressions / personne touchée</span></div>
           </div>
         </section>
         ${p.engagements?`<section class="card" style="gap:18px">
