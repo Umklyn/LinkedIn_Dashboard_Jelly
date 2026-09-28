@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s);
 const fmt=n=>n==null||isNaN(n)?'—':Math.round(n).toLocaleString('fr-BE').replace(/\u202f/g,'\u00a0');
 const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{minimumFractionDigits:d,maximumFractionDigits:d})+' %';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let posts=[], demoPosts=null, current=null, db=null, tab='res';
+let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, calLoginOpen=false;
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
 if(!['res','evo'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
@@ -170,7 +170,10 @@ function tuesdays(){
   return out.sort();
 }
 function renderCal(){
-  $('#head').innerHTML=`<div class="cal-h"><div><span class="eyebrow">Un post par semaine.</span><h1>Calendrier éditorial</h1><p>Un post chaque mardi · bilan le lundi suivant</p></div></div>${calMsg?`<div class="demo-banner" style="margin-top:12px">${esc(calMsg)}</div>`:''}`;calMsg='';
+  const authHtml=isAdmin?`<button type="button" class="btn" id="cal-logout">🔓 Déconnexion</button>`
+    :calLoginOpen?`<form id="cal-login-form" style="display:flex;gap:8px;align-items:center"><input type="email" id="cal-email" placeholder="Email" autocomplete="username" required><input type="password" id="cal-pass" placeholder="Mot de passe" autocomplete="current-password" required><button type="submit" class="pbtn solid">OK</button><button type="button" id="cal-login-cancel" class="pbtn">Annuler</button></form>`
+    :`<button type="button" class="btn" id="cal-login-toggle">🔒 Connexion</button>`;
+  $('#head').innerHTML=`<div class="cal-h"><div><span class="eyebrow">Un post par semaine.</span><h1>Calendrier éditorial</h1><p>Un post chaque mardi · bilan le lundi suivant</p></div><div>${authHtml}</div></div>${calMsg?`<div class="demo-banner" style="margin-top:12px">${esc(calMsg)}</div>`:''}`;calMsg='';
   $('#tabs').hidden=true;
   const now=new Date();now.setHours(12,0,0,0);const today=now.toISOString().slice(0,10);
   const lastTue=tuesdays().filter(d=>d<=today).pop();
@@ -192,21 +195,32 @@ function renderCal(){
         <span class="cal-num">${dayNum}</span><span class="cal-wm">${wd}<br>${mo}</span>
       </div>
       <div class="topic-row">
-        <button type="button" class="linkbtn ${it.link?'has':''}" data-link="${d}" aria-expanded="${openLink===d}" title="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}" aria-label="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}">${it.link?'🔗':'+'}</button>
-        <input class="topic" type="text" data-f="topic" value="${esc(topic)}" placeholder="Sujet du post" aria-label="Sujet du ${dateFr(d)}">
+        ${isAdmin?`<button type="button" class="linkbtn ${it.link?'has':''}" data-link="${d}" aria-expanded="${openLink===d}" title="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}" aria-label="${it.link?'Modifier le lien LinkedIn':'Ajouter le lien LinkedIn'}">${it.link?'🔗':'+'}</button>`
+          :(it.link?`<a class="linkbtn has" href="${esc(it.link)}" target="_blank" rel="noopener" title="Voir le post LinkedIn" aria-label="Voir le post LinkedIn">🔗</a>`:'')}
+        ${isAdmin?`<input class="topic" type="text" data-f="topic" value="${esc(topic)}" placeholder="Sujet du post" aria-label="Sujet du ${dateFr(d)}">`
+          :`<span class="topic">${esc(topic)||'—'}</span>`}
       </div>
-      <select class="st st-${st}" data-f="status" aria-label="Statut" ${pub?'disabled':''}>${STATUS.map(([k,n])=>`<option value="${k}" ${st===k?'selected':''}>${n}</option>`).join('')}</select>
-      <button type="button" class="dbtn ${it.draft?'has':''}" data-draft="${d}" aria-expanded="${openDraft===d}">${it.draft?'Draft ✓':'+ Draft'}</button>
+      ${isAdmin?`<select class="st st-${st}" data-f="status" aria-label="Statut" ${pub?'disabled':''}>${STATUS.map(([k,n])=>`<option value="${k}" ${st===k?'selected':''}>${n}</option>`).join('')}</select>`
+        :`<span class="st st-${st}">${(STATUS.find(([k])=>k===st)||[])[1]||''}</span>`}
+      ${isAdmin?`<button type="button" class="dbtn ${it.draft?'has':''}" data-draft="${d}" aria-expanded="${openDraft===d}">${it.draft?'Draft ✓':'+ Draft'}</button>`
+        :(it.draft?`<button type="button" class="dbtn has" data-draft="${d}" aria-expanded="${openDraft===d}">Draft ✓</button>`:'')}
       <div class="cal-res">${pub?`<button type="button" data-open="${pub.id}">${fmt(pub.impressions)} impressions ›</button><br><label class="upd" for="file" data-row="${d}">Mettre à jour les stats</label>`:`<label class="ibtn" for="file" data-row="${d}">Importer le fichier Excel</label>`}</div>
     </div>`;
-    if(openLink===d){html+=`<div class="cal-draft" style="padding:14px 20px"><div class="link-row"><input type="text" id="link-${d}" data-linktext="${d}" value="${esc(it.link||'')}" placeholder="https://www.linkedin.com/posts/…" aria-label="Lien LinkedIn du ${dateFr(d)}"><button type="button" class="pbtn solid" data-link-save="${d}">Enregistrer</button><button type="button" class="pbtn" data-link-close="${d}">Fermer</button></div></div>`;}
-    if(openDraft===d){const ed=editDraft===d||!it.draft;const pen='<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+    if(openLink===d&&isAdmin){html+=`<div class="cal-draft" style="padding:14px 20px"><div class="link-row"><input type="text" id="link-${d}" data-linktext="${d}" value="${esc(it.link||'')}" placeholder="https://www.linkedin.com/posts/…" aria-label="Lien LinkedIn du ${dateFr(d)}"><button type="button" class="pbtn solid" data-link-save="${d}">Enregistrer</button><button type="button" class="pbtn" data-link-close="${d}">Fermer</button></div></div>`;}
+    if(openDraft===d){const ed=isAdmin&&(editDraft===d||!it.draft);const pen='<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
       html+=`<div class="cal-draft"><div class="dhead"><span class="muted">Draft du post du ${dateFr(d,{weekday:'long',day:'numeric',month:'long'})}</span>${ed?'':`<button type="button" class="pen" data-edit="${d}" title="Modifier le draft" aria-label="Modifier le draft">${pen}</button>`}</div>
       ${ed?`<textarea id="draft-${d}" data-dtext="${d}" aria-label="Draft" placeholder="Écris ou colle ton post ici…">${esc(it.draft||'')}</textarea>`:`<div class="dview">${esc(it.draft)}</div>`}
       <div class="dfoot"><span data-count>${countTxt(it.draft||'')}</span><span class="dbtns">${ed?`<button type="button" data-done="${d}">Terminé ✓</button>`:''}<button type="button" data-copy="${d}">Copier le texte</button></span></div></div>`;}
   });
   html+='</div><button type="button" class="more" id="calmore">Afficher 4 semaines de plus</button>';
   $('#main').innerHTML=`<div style="display:grid;gap:14px">${html}</div>`;
+  const lt=$('#cal-login-toggle');if(lt)lt.addEventListener('click',()=>{calLoginOpen=true;renderCal();});
+  const lcan=$('#cal-login-cancel');if(lcan)lcan.addEventListener('click',()=>{calLoginOpen=false;renderCal();});
+  const lf=$('#cal-login-form');if(lf)lf.addEventListener('submit',async e=>{e.preventDefault();
+    try{await firebase.auth().signInWithEmailAndPassword($('#cal-email').value,$('#cal-pass').value);calLoginOpen=false;}
+    catch(err){calMsg="Connexion échouée — vérifie l'email et le mot de passe.";}
+    renderCal();});
+  const lo=$('#cal-logout');if(lo)lo.addEventListener('click',()=>{firebase.auth().signOut();renderCal();});
   $('#main').querySelectorAll('.cal-r [data-f]').forEach(el=>el.addEventListener('change',()=>{
     const d=el.closest('.cal-r').dataset.d;cal[d]=cal[d]||{};cal[d][el.dataset.f]=el.value;saveCal();
     if(el.dataset.f==='topic'){const pb=all().find(x=>isoWeek(x.date)===isoWeek(d));if(pb){pb.topic=el.value;save(pb);}}
@@ -378,6 +392,7 @@ document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.clo
 
 try{const c=JSON.parse(localStorage.getItem('li-dash-cache')||'[]');if(Array.isArray(c))posts=c;}catch(e){}
 render();
+try{firebase.auth().onAuthStateChanged(u=>{isAdmin=!!u;if(view==='cal')renderCal();});}catch(e){}
 (async()=>{
   try{db=await window.claude?.use?.('db');}catch(e){db=null;}
   if(!db){try{db=firebase.firestore();}catch(e){db=null;}}

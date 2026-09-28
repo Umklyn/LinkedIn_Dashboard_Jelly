@@ -144,6 +144,9 @@ h2{font:700 20px var(--font-head);margin:0}
 .cal-r.next .cal-num,.cal-r.next .cal-wm{color:#fff}
 .cal-r input,.cal-r select{font:14px var(--font-body);color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 .cal-r select.st{font-weight:600;border-color:transparent}
+span.st{display:inline-block;font:600 14px var(--font-body);border-radius:8px;padding:8px 10px;text-align:center}
+.cal-r .topic-row span.topic{padding:8px 0;color:var(--ink)}
+#cal-login-form input{font:14px var(--font-body);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
 .st-idee{background:var(--surface-2)!important}
 .st-redac{background:#fdf1d8!important;color:#7a5200!important}
 .st-pret{background:var(--good-soft)!important;color:var(--good)!important}
