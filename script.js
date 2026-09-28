@@ -272,8 +272,6 @@ function render(){
         ${isAdmin?`<label class="edit-only" style="display:grid;gap:6px;font-size:14px;color:var(--ink-2);font-weight:500">Titre du post (affiché en haut)<input type="text" id="n-topic" value="${esc(p.topic)}"></label>
         <label class="edit-only" style="display:grid;gap:6px;font-size:14px;color:var(--ink-2);font-weight:500">Lien du post
           <div class="link-row"><input type="text" id="n-url" value="${esc(p.url)}" placeholder="https://www.linkedin.com/posts/…"><button class="pbtn" type="button" id="url-save">Enregistrer</button></div></label>
-        <label class="edit-only" style="display:grid;gap:6px;font-size:14px;color:var(--ink-2);font-weight:500">% d'impressions dans ton réseau <span class="muted" style="font-weight:400">(à lire dans les stats LinkedIn)</span>
-          <div class="link-row"><input type="number" min="0" max="100" step="1" id="n-netpct" value="${p.networkPct??''}" placeholder="ex: 62"><button class="pbtn" type="button" id="netpct-save">Enregistrer</button></div></label>
         ${p.shot?`<div class="link-row edit-only"><label class="pbtn" for="shot-file">Remplacer la capture</label><button class="pbtn" type="button" id="shot-del">Retirer</button></div>`:''}
         <input type="file" id="shot-file" accept="image/*" hidden>`:''}
       </div></div>`;
@@ -292,6 +290,8 @@ function render(){
         ${kpi(false,fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
         ${p.networkPct!=null?kpi(false,p.networkPct+' %','Impressions dans ton réseau',delta(p.networkPct/100,pr?.networkPct!=null?pr.networkPct/100:null,true)):''}
       </div>
+      ${isAdmin?`<div class="edit-only" style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2)">% d'impressions dans ton réseau <span class="muted">(à lire dans les stats LinkedIn)</span>
+        <input type="number" min="0" max="100" step="1" id="n-netpct" value="${p.networkPct??''}" placeholder="ex: 62" style="width:80px;font:14px var(--font-body);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><button class="pbtn" type="button" id="netpct-save">Enregistrer</button></div>`:''}
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
           <div><h2>Impressions, personnes touchées & interactions</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
@@ -341,7 +341,7 @@ function render(){
   $('#main').innerHTML=html;
   if(tab==='post'){$('#shot-file').addEventListener('change',e=>{if(e.target.files[0])setShot(e.target.files[0]);});const dl=$('#shot-del');if(dl)dl.addEventListener('click',async()=>{const q=all().find(x=>x.id===current);delete q.shot;await save(q);render();});}
   if(tab==='post'&&$('#url-save')){const sv=async()=>{const q=all().find(x=>x.id===current);const v=cleanUrl($('#n-url').value);if(v===q.url)return;q.url=v;await save(q);render();};$('#url-save').addEventListener('click',sv);$('#n-url').addEventListener('keydown',e=>{if(e.key==='Enter')sv();});}
-  if(tab==='post'&&$('#netpct-save')){const sv=async()=>{const q=all().find(x=>x.id===current);const raw=$('#n-netpct').value;const v=raw===''?null:Math.max(0,Math.min(100,Math.round(+raw)));if(v===q.networkPct)return;q.networkPct=v;await save(q);render();};$('#netpct-save').addEventListener('click',sv);$('#n-netpct').addEventListener('keydown',e=>{if(e.key==='Enter')sv();});}
+  if($('#netpct-save')){const sv=async()=>{const q=all().find(x=>x.id===current);const raw=$('#n-netpct').value;const v=raw===''?null:Math.max(0,Math.min(100,Math.round(+raw)));if(v===q.networkPct)return;q.networkPct=v;await save(q);render();};$('#netpct-save').addEventListener('click',sv);$('#n-netpct').addEventListener('keydown',e=>{if(e.key==='Enter')sv();});}
   const nt=$('#n-topic');if(nt)nt.addEventListener('change',async()=>{const q=all().find(x=>x.id===current);q.topic=nt.value;await save(q);render();});
 }
 const LOC={'Brussels Metropolitan Area':'région bruxelloise','Greater Paris Metropolitan Region':'région parisienne','Antwerp Metropolitan Area':'région d\'Anvers','Namur Metropolitan Area':'région de Namur','Liege Metropolitan Area':'région de Liège','Ghent Metropolitan Area':'région de Gand','Louvain Metropolitan Area':'région de Louvain','Amsterdam Area':'région d\'Amsterdam','London Area, United Kingdom':'région de Londres'};
