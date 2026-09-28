@@ -75,7 +75,7 @@ h1{font:700 clamp(30px,4.4vw,48px)/1.08 var(--font-head);letter-spacing:-.01em;c
 .delta.up{background:var(--good-soft);color:var(--good)}
 .delta.down{background:var(--bad-soft);color:var(--bad)}
 .delta.flat{background:var(--surface-2);color:var(--ink-2)}
-.kpi.lead .delta{background:rgba(114,128,240,.22);color:var(--peri)}
+.kpi.lead .delta{background:rgba(249,192,230,.18);color:var(--pink)}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:16px;align-content:start;min-width:0}
 h2{font:700 20px var(--font-head);margin:0}
