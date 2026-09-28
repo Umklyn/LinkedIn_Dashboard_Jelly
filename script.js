@@ -67,6 +67,7 @@ function parseRows(rows){
   return p;
 }
 async function importFiles(files){
+  if(!isAdmin)return;
   demoPosts=null;$('#demo').hidden=true;
   const st=$('#status');st.hidden=false;st.className='status edit-only';let ok=0;
   for(const f of files){
@@ -204,7 +205,7 @@ function renderCal(){
         :`<span class="st st-${st}">${(STATUS.find(([k])=>k===st)||[])[1]||''}</span>`}
       ${isAdmin?`<button type="button" class="dbtn ${it.draft?'has':''}" data-draft="${d}" aria-expanded="${openDraft===d}">${it.draft?'Draft ✓':'+ Draft'}</button>`
         :(it.draft?`<button type="button" class="dbtn has" data-draft="${d}" aria-expanded="${openDraft===d}">Draft ✓</button>`:'')}
-      <div class="cal-res">${pub?`<button type="button" data-open="${pub.id}">${fmt(pub.impressions)} impressions ›</button><br><label class="upd" for="file" data-row="${d}">Mettre à jour les stats</label>`:`<label class="ibtn" for="file" data-row="${d}">Importer le fichier Excel</label>`}</div>
+      <div class="cal-res">${pub?`<button type="button" data-open="${pub.id}">${fmt(pub.impressions)} impressions ›</button>${isAdmin?`<br><label class="upd" for="file" data-row="${d}">Mettre à jour les stats</label>`:''}`:(isAdmin?`<label class="ibtn" for="file" data-row="${d}">Importer le fichier Excel</label>`:'')}</div>
     </div>`;
     if(openLink===d&&isAdmin){html+=`<div class="cal-draft" style="padding:14px 20px"><div class="link-row"><input type="text" id="link-${d}" data-linktext="${d}" value="${esc(it.link||'')}" placeholder="https://www.linkedin.com/posts/…" aria-label="Lien LinkedIn du ${dateFr(d)}"><button type="button" class="pbtn solid" data-link-save="${d}">Enregistrer</button><button type="button" class="pbtn" data-link-close="${d}">Fermer</button></div></div>`;}
     if(openDraft===d){const ed=isAdmin&&(editDraft===d||!it.draft);const pen='<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
@@ -261,14 +262,14 @@ function render(){
   let html='';
   if(tab==='post'){
     html=`<div class="post-wrap">
-      <div class="post-frame">${p.shot?`<img src="${p.shot}" alt="Capture du post LinkedIn">`:`<label class="drop edit-only" for="shot-file"><b>Ajoute une capture d'écran du post</b><span>Fais une capture du post, puis colle-la ici avec Ctrl+V — ou clique pour choisir l'image.</span></label><div class="post-empty present-only">Pas de capture pour ce post.</div>`}</div>
+      <div class="post-frame">${p.shot?`<img src="${p.shot}" alt="Capture du post LinkedIn">`:(isAdmin?`<label class="drop edit-only" for="shot-file"><b>Ajoute une capture d'écran du post</b><span>Fais une capture du post, puis colle-la ici avec Ctrl+V — ou clique pour choisir l'image.</span></label>`:'')+`<div class="post-empty present-only">Pas de capture pour ce post.</div>`}</div>
       <div class="post-side">
         ${p.url?`<div><a class="pbtn solid" href="${esc(cleanUrl(p.url))}" target="_blank" rel="noopener">Ouvrir le post sur LinkedIn ↗</a></div>`:''}
-        <label class="edit-only" style="display:grid;gap:6px;font-size:14px;color:var(--ink-2);font-weight:500">Titre du post (affiché en haut)<input type="text" id="n-topic" value="${esc(p.topic)}"></label>
+        ${isAdmin?`<label class="edit-only" style="display:grid;gap:6px;font-size:14px;color:var(--ink-2);font-weight:500">Titre du post (affiché en haut)<input type="text" id="n-topic" value="${esc(p.topic)}"></label>
         <label class="edit-only" style="display:grid;gap:6px;font-size:14px;color:var(--ink-2);font-weight:500">Lien du post
           <div class="link-row"><input type="text" id="n-url" value="${esc(p.url)}" placeholder="https://www.linkedin.com/posts/…"><button class="pbtn" type="button" id="url-save">Enregistrer</button></div></label>
         ${p.shot?`<div class="link-row edit-only"><label class="pbtn" for="shot-file">Remplacer la capture</label><button class="pbtn" type="button" id="shot-del">Retirer</button></div>`:''}
-        <input type="file" id="shot-file" accept="image/*" hidden>
+        <input type="file" id="shot-file" accept="image/*" hidden>`:''}
       </div></div>`;
   }
   if(tab==='res'){
@@ -327,7 +328,7 @@ function render(){
     </div>
     <div class="card"><h2>Toutes les semaines</h2><div class="tw"><table>
       <thead><tr><th>Semaine</th><th>Impressions</th><th>Touchées</th><th>Engagement</th><th>Vues profil</th><th class="edit-only"></th></tr></thead>
-      <tbody>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
+      <tbody>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts||!isAdmin?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
     </table></div></div></div>`;
   }
   $('#main').innerHTML=html;
@@ -362,6 +363,7 @@ document.addEventListener('dragover',e=>e.preventDefault());
 document.addEventListener('drop',e=>{e.preventDefault();const f=[...e.dataTransfer.files];const img=f.find(x=>x.type.startsWith('image/'));if(img){setShot(img);return;}if(f.length){pendingRow=null;importFiles(f);}});
 document.addEventListener('paste',e=>{if(tab!=='post'||/INPUT|TEXTAREA/.test(document.activeElement?.tagName||''))return;const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'));if(it){e.preventDefault();setShot(it.getAsFile());}});
 function setShot(file){
+  if(!isAdmin)return;
   const q=all().find(x=>x.id===current);if(!q)return;
   const img=new Image();const url=URL.createObjectURL(file);
   img.onload=async()=>{const k=Math.min(1,1000/img.width);const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
