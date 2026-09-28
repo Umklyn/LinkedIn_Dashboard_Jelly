@@ -294,7 +294,7 @@ function render(){
         <input type="number" min="0" max="100" step="1" id="n-netpct" value="${p.networkPct??''}" placeholder="ex: 62" style="width:80px;font:14px var(--font-body);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><button class="pbtn" type="button" id="netpct-save">Enregistrer</button></div>`:''}
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
-          <div><h2>Impressions, personnes touchées & interactions</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
+          <div><h2>Volumes</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
           <div class="donut-wrap">
             ${donut([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']],p.impressions+p.reached+p.engagements,p.impressions,'impressions')}
             <div class="legend">
