@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s);
 const fmt=n=>n==null||isNaN(n)?'—':Math.round(n).toLocaleString('fr-BE').replace(/\u202f/g,'\u00a0');
 const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{minimumFractionDigits:d,maximumFractionDigits:d})+' %';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, calLoginOpen=false;
+let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, calLoginOpen=false, keepStatus=false;
 function toFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(([n,v])=>({n,v}));return out;}
 function fromFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(x=>Array.isArray(x)?x:[x.n,x.v]);return out;}
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
@@ -86,8 +86,7 @@ async function importFiles(files){
     }catch(e){st.className='status edit-only err';st.textContent=`« ${f.name} » n'a pas pu être lu (${e.message}). Utilise l'export des statistiques du post LinkedIn en .xlsx.`;}
   }
   pendingRow=null;
-  if(ok&&st.className!=='status edit-only err'){st.textContent=`${ok} post${ok>1?'s':''} importé${ok>1?'s':''}.`;render();}
-  else if(ok)render();
+  if(ok){keepStatus=true;if(st.className!=='status edit-only err')st.textContent=`${ok} post${ok>1?'s':''} importé${ok>1?'s':''}.`;render();}
 }
 async function save(p){
   if(demoPosts)return;
@@ -249,7 +248,7 @@ function renderCal(){
 function setView(v){view=v;$('#calbtn').setAttribute('aria-pressed',v==='cal');$('#calbtn').textContent=v==='cal'?'‹ Résultats':'Calendrier';render();}
 
 function render(){
-  if(view==='cal'){renderWeeks(sorted(),sorted().find(x=>x.id===current)||sorted().slice(-1)[0]);$('#status').hidden=true;return renderCal();}
+  if(view==='cal'){renderWeeks(sorted(),sorted().find(x=>x.id===current)||sorted().slice(-1)[0]);if(keepStatus)keepStatus=false;else $('#status').hidden=true;return renderCal();}
   const s=sorted();
   const p=s.find(x=>x.id===current)||s[s.length-1];
   renderWeeks(s,p);
