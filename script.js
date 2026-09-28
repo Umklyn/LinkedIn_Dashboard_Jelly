@@ -288,9 +288,9 @@ function render(){
         ${kpi(true,fmt(p.impressions),'Impressions',delta(p.impressions,pr?.impressions))}
         ${kpi(false,pctFmt(rate(p)),'Taux d\'engagement',delta(rate(p),pr?rate(pr):null,true))}
         ${kpi(false,fmt(p.profileViews),'Vues du profil',delta(p.profileViews,pr?.profileViews))}
-        ${p.networkPct!=null?kpi(false,p.networkPct+' %','Impressions hors de ton réseau',delta(p.networkPct/100,pr?.networkPct!=null?pr.networkPct/100:null,true)):''}
+        ${p.networkPct!=null?kpi(false,p.networkPct+' %','Impressions hors du réseau',delta(p.networkPct/100,pr?.networkPct!=null?pr.networkPct/100:null,true)):''}
       </div>
-      ${isAdmin?`<div class="edit-only" style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2)">% d'impressions hors de ton réseau <span class="muted">(à lire dans les stats LinkedIn)</span>
+      ${isAdmin?`<div class="edit-only" style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2)">% d'impressions hors du réseau <span class="muted">(à lire dans les stats LinkedIn)</span>
         <input type="number" min="0" max="100" step="1" id="n-netpct" value="${p.networkPct??''}" placeholder="ex: 62" style="width:80px;font:14px var(--font-body);border:1px solid var(--line);border-radius:8px;padding:7px 10px"><button class="pbtn" type="button" id="netpct-save">Enregistrer</button></div>`:''}
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
