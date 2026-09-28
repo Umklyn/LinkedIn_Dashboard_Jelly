@@ -295,11 +295,8 @@ function render(){
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
           <div><h2>Impressions, personnes touchées & interactions</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
-          <div class="donut-wrap">
-            ${donut([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']],p.impressions+p.reached+p.engagements)}
-            <div class="legend">
-              ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
-            </div>
+          <div class="legend">
+            ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>`).join('')}
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <div class="gauge"><b>${n1(ipm)}</b><span>impressions / personne touchée</span></div>
