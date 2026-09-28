@@ -68,7 +68,7 @@ h1{font:700 clamp(30px,4.4vw,48px)/1.08 var(--font-head);letter-spacing:-.01em;c
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:6px;align-content:start}
 .kpi.lead{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
-.k-l{font-size:14px;color:var(--ink-2);min-height:2.4em;display:flex;align-items:start}
+.k-l{font-size:14px;line-height:1.35;color:var(--ink-2);min-height:38px;display:flex;align-items:start}
 .kpi.lead .k-l{color:var(--pink)}
 .k-v{font:700 clamp(36px,4.6vw,48px)/1 var(--font-head);font-variant-numeric:lining-nums tabular-nums}
 .delta{font:600 13px var(--font-body);border-radius:6px;padding:2px 8px;justify-self:start;white-space:nowrap}
