@@ -92,7 +92,7 @@ async function save(p){
   if(demoPosts)return;
   const i=posts.findIndex(x=>x.id===p.id);if(i>=0)posts[i]=p;else posts.push(p);
   try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(e){}
-  if(db){try{await db.doc('posts/'+p.id).set({...p,demographics:toFsDemo(p.demographics)});}catch(e){return e.message||'erreur inconnue';}}
+  if(db){try{const fsData=JSON.parse(JSON.stringify({...p,demographics:toFsDemo(p.demographics)}));await db.doc('posts/'+p.id).set(fsData);}catch(e){return e.message||'erreur inconnue';}}
 }
 
 
