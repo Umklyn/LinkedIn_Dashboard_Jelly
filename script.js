@@ -79,17 +79,19 @@ async function importFiles(files){
       const old=posts.find(x=>x.id===p.id);
       if(old){p.notes=old.notes;p.next=old.next;}
       p.importedAt=new Date().toISOString();
-      await save(p);ok++;current=p.id;
+      const dbErr=await save(p);ok++;current=p.id;
+      if(dbErr){st.className='status edit-only err';st.textContent=`« ${f.name} » sauvegardé sur cet appareil seulement — pas synchronisé en ligne (${dbErr}).`;}
     }catch(e){st.className='status edit-only err';st.textContent=`« ${f.name} » n'a pas pu être lu (${e.message}). Utilise l'export des statistiques du post LinkedIn en .xlsx.`;}
   }
   pendingRow=null;
-  if(ok){st.textContent=`${ok} post${ok>1?'s':''} importé${ok>1?'s':''}.`;render();}
+  if(ok&&st.className!=='status edit-only err'){st.textContent=`${ok} post${ok>1?'s':''} importé${ok>1?'s':''}.`;render();}
+  else if(ok)render();
 }
 async function save(p){
   if(demoPosts)return;
   const i=posts.findIndex(x=>x.id===p.id);if(i>=0)posts[i]=p;else posts.push(p);
   try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(e){}
-  if(db){try{await db.doc('posts/'+p.id).set(p);}catch(e){}}
+  if(db){try{await db.doc('posts/'+p.id).set(p);}catch(e){return e.message||'erreur inconnue';}}
 }
 
 
