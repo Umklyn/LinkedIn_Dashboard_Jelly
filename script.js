@@ -380,6 +380,7 @@ try{const c=JSON.parse(localStorage.getItem('li-dash-cache')||'[]');if(Array.isA
 render();
 (async()=>{
   try{db=await window.claude?.use?.('db');}catch(e){db=null;}
+  if(!db){try{db=firebase.firestore();}catch(e){db=null;}}
   if(!db)return;
   db.doc('cal/plan').onSnapshot(sn=>{const d=sn.data&&sn.data();if(d&&d.items){cal=d.items;try{localStorage.setItem('li-cal',JSON.stringify(cal));}catch(_){}if(view==='cal'&&!/INPUT|SELECT/.test(document.activeElement?.tagName||''))renderCal();}},()=>{});
   db.collection('posts').onSnapshot(snap=>{
