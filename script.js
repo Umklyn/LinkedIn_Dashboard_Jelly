@@ -109,7 +109,7 @@ function makeDemo(){
 
 function delta(cur,prev,isRate){
   if(prev==null)return '<span class="delta flat">1re semaine</span>';
-  if(isRate){const d=(cur-prev)*100;const c=Math.abs(d)<.05?'flat':d>0?'up':'down';return `<span class="delta ${c}">${d>0?'▲ +':d<0?'▼ −':'= '}${Math.abs(d).toLocaleString('fr-BE',{maximumFractionDigits:1})} pt</span>`;}
+  if(isRate){const d=(cur-prev)*100;const c=Math.abs(d)<.05?'flat':d>0?'up':'down';return `<span class="delta ${c}">${d>0?'▲ +':d<0?'▼ −':'= '}${Math.abs(d).toLocaleString('fr-BE',{maximumFractionDigits:1})} %</span>`;}
   if(!prev)return cur?'<span class="delta up">▲ nouveau</span>':'<span class="delta flat">=</span>';
   const d=(cur-prev)/prev;const c=Math.abs(d)<.005?'flat':d>0?'up':'down';
   return `<span class="delta ${c}">${d>0?'▲ +':d<0?'▼ −':'= '}${Math.abs(Math.round(d*100))} %</span>`;
