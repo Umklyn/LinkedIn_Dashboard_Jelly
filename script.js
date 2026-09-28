@@ -3,6 +3,8 @@ const fmt=n=>n==null||isNaN(n)?'—':Math.round(n).toLocaleString('fr-BE').repla
 const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{minimumFractionDigits:d,maximumFractionDigits:d})+' %';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, calLoginOpen=false;
+function toFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(([n,v])=>({n,v}));return out;}
+function fromFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(x=>Array.isArray(x)?x:[x.n,x.v]);return out;}
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
 if(!['res','evo'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
@@ -91,7 +93,7 @@ async function save(p){
   if(demoPosts)return;
   const i=posts.findIndex(x=>x.id===p.id);if(i>=0)posts[i]=p;else posts.push(p);
   try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(e){}
-  if(db){try{await db.doc('posts/'+p.id).set(p);}catch(e){return e.message||'erreur inconnue';}}
+  if(db){try{await db.doc('posts/'+p.id).set({...p,demographics:toFsDemo(p.demographics)});}catch(e){return e.message||'erreur inconnue';}}
 }
 
 
@@ -407,7 +409,7 @@ try{firebase.auth().onAuthStateChanged(u=>{isAdmin=!!u;if(view==='cal')renderCal
   if(!db)return;
   try{
     const psnap=await db.collection('posts').get();
-    if(psnap.empty&&posts.length)await Promise.all(posts.map(p=>db.doc('posts/'+p.id).set(p).catch(()=>{})));
+    if(psnap.empty&&posts.length)await Promise.all(posts.map(p=>db.doc('posts/'+p.id).set({...p,demographics:toFsDemo(p.demographics)}).catch(()=>{})));
   }catch(e){}
   try{
     const cdoc=await db.doc('cal/plan').get();
@@ -416,7 +418,7 @@ try{firebase.auth().onAuthStateChanged(u=>{isAdmin=!!u;if(view==='cal')renderCal
   }catch(e){}
   db.doc('cal/plan').onSnapshot(sn=>{const d=sn.data&&sn.data();if(d&&d.items){cal=d.items;try{localStorage.setItem('li-cal',JSON.stringify(cal));}catch(_){}if(view==='cal'&&!/INPUT|SELECT/.test(document.activeElement?.tagName||''))renderCal();}},()=>{});
   db.collection('posts').onSnapshot(snap=>{
-    posts=snap.docs.map(d=>d.data()).filter(Boolean).map(d=>JSON.parse(JSON.stringify(d)));
+    posts=snap.docs.map(d=>d.data()).filter(Boolean).map(d=>JSON.parse(JSON.stringify(d))).map(d=>({...d,demographics:fromFsDemo(d.demographics)}));
     const f=document.activeElement&&/n-/.test(document.activeElement.id||'');
     if(!f&&!demoPosts)render();
   },()=>{});
