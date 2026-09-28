@@ -382,6 +382,15 @@ render();
   try{db=await window.claude?.use?.('db');}catch(e){db=null;}
   if(!db){try{db=firebase.firestore();}catch(e){db=null;}}
   if(!db)return;
+  try{
+    const psnap=await db.collection('posts').get();
+    if(psnap.empty&&posts.length)await Promise.all(posts.map(p=>db.doc('posts/'+p.id).set(p).catch(()=>{})));
+  }catch(e){}
+  try{
+    const cdoc=await db.doc('cal/plan').get();
+    const cdata=cdoc.exists&&cdoc.data();
+    if((!cdata||!cdata.items||!Object.keys(cdata.items).length)&&Object.keys(cal).length)await db.doc('cal/plan').set({items:cal}).catch(()=>{});
+  }catch(e){}
   db.doc('cal/plan').onSnapshot(sn=>{const d=sn.data&&sn.data();if(d&&d.items){cal=d.items;try{localStorage.setItem('li-cal',JSON.stringify(cal));}catch(_){}if(view==='cal'&&!/INPUT|SELECT/.test(document.activeElement?.tagName||''))renderCal();}},()=>{});
   db.collection('posts').onSnapshot(snap=>{
     posts=snap.docs.map(d=>d.data()).filter(Boolean).map(d=>JSON.parse(JSON.stringify(d)));
