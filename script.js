@@ -278,7 +278,7 @@ function render(){
   }
   if(tab==='res'){
     const d=p.demographics||{};
-    const ipm=p.reached?p.impressions/p.reached:null, i100=p.impressions?p.engagements/p.impressions*100:null;
+    const ipm=p.reached?p.impressions/p.reached:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
     const plural=(n,a,b)=>`${fmt(n)} ${n>1?b:a}`;
     const aud=(t,list,tr)=>list&&list.length?`<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]))}</div>`:'';
@@ -303,7 +303,6 @@ function render(){
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <div class="gauge"><b>${n1(ipm)}</b><span>impressions / personne touchée</span></div>
-            <div class="gauge"><b>${n1(i100)}</b><span>interactions / 100 impressions</span></div>
           </div>
         </section>
         ${p.engagements?`<section class="card" style="gap:18px">
