@@ -330,8 +330,7 @@ function render(){
     </div>
     <div class="card"><h2>Toutes les semaines</h2><div class="tw"><table>
       <thead><tr><th>Semaine</th><th>Impressions</th><th>Touchées</th><th>Engagement</th><th>Vues profil</th><th class="edit-only"></th></tr></thead>
-      <tbody>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts||!isAdmin?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
-      <tfoot><tr class="tw-total"><td data-tip="Total">Total</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.impressions,0))}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.reached,0))}</td><td data-tip="Moyenne">${pctFmt(s.length?s.reduce((a,x)=>a+rate(x),0)/s.length:0)}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.profileViews,0))}</td><td class="edit-only"></td></tr></tfoot>
+      <tbody><tr class="tw-total"><td data-tip="Total">Total</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.impressions,0))}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.reached,0))}</td><td data-tip="Moyenne">${pctFmt(s.length?s.reduce((a,x)=>a+rate(x),0)/s.length:0)}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.profileViews,0))}</td><td class="edit-only"></td></tr>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts||!isAdmin?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
     </table></div></div></div>`;
   }
   $('#main').innerHTML=html;
