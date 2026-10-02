@@ -107,7 +107,7 @@ async function save(p){
 function makeDemo(){
   const base=posts[0]?.demographics||{};
   const topics=['Retour sur ma formation','Mon projet SEA','Les 3 KPI que je suis','Case study','Ce que j\'apprends en agence','Un échec que j\'assume','Ma routine de veille','3 outils que j\'utilise au quotidien','Ce qui a changé ce trimestre','Derrière les coulisses','Mon bilan de rentrée','Nouveau job'];
-  const series=[[640,360,22,5],[820,470,31,6],[705,400,27,5],[990,560,38,8],[1040,610,44,9],[880,500,33,7],[760,430,26,4],[1150,650,47,10],[1320,720,58,12],[1020,580,40,9],[1180,650,49,11],[1556,853,71,20]];
+  const series=[[560,316,29,8],[536,303,24,7],[701,396,32,9],[684,386,35,10],[836,472,38,11],[809,457,36,10],[1019,576,53,15],[966,546,43,12],[1124,635,51,14],[1049,593,54,15],[1344,759,60,17],[1224,692,55,15],[1453,821,75,21],[1325,749,60,17],[1622,916,73,20],[1513,855,78,22],[1834,1036,83,23]];
   const end=new Date('2026-09-22T12:00:00');
   return series.map((s,i)=>{const d=new Date(end);d.setDate(d.getDate()-7*(series.length-1-i));const r=Math.round(s[2]*.72),c=Math.round(s[2]*.24);
     return {id:'demo'+i,date:d.toISOString().slice(0,10),time:'8:15 AM',url:'',topic:topics[i%topics.length],
