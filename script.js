@@ -350,7 +350,7 @@ function render(){
       <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
       ${series.length?trendChart(series,labels,curIdx):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
-      ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
+      ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et les vues mensuelle/totale sont plus parlantes avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
       ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
