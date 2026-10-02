@@ -132,7 +132,7 @@ function trendChart(series,labels,curIdx,titles){
   const bars=series.filter(s=>s.type==='bar'), lines=series.filter(s=>s.type!=='bar');
   const leftS=bars.find(s=>s.key!=='engagement')||bars[0], groupedS=bars.find(s=>s!==leftS);
   const lineMax=lines.length?niceMax(Math.max(...lines.flatMap(s=>s.values),0)*1.08):1;
-  const norm=series.map(s=>({max:s.type==='bar'?niceMax(Math.max(...s.values,0)*1.08):lineMax}));
+  const norm=series.map(s=>({max:s.key==='engagement'?1:s.type==='bar'?niceMax(Math.max(...s.values,0)*1.08):lineMax}));
   series.forEach((s,i)=>{norm[i].vals=s.values.map(v=>Math.min(1,(v||0)/norm[i].max));});
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
