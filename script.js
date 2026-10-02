@@ -327,38 +327,43 @@ function render(){
   }
   if(tab==='evo'){
     const PERIODS=[['week','Hebdomadaire'],['month','Mensuel'],['total','Total']];
-    let win,labels,curIdx,evoTitle;
+    let win,labels,curIdx,colLabel,rows;
     if(evoPeriod==='month'){
       const groups=monthlyGroups(s);
-      const gi=groups.findIndex(g=>g.key===monthKey(p.date));
+      const curKey=monthKey(p.date);
+      const gi=groups.findIndex(g=>g.key===curKey);
       const from=Math.max(0,gi-7);
-      win=groups.slice(from,gi+1);labels=win.map(g=>g.label);curIdx=win.length-1;evoTitle='Évolution par mois';
+      win=groups.slice(from,gi+1);labels=win.map(g=>g.label);curIdx=win.length-1;colLabel='Mois';
+      rows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
     }else if(evoPeriod==='total'){
-      win=s.length?[aggPosts(s)]:[];labels=['Total'];curIdx=0;evoTitle='Évolution totale';
+      const tot=s.length?aggPosts(s):null;
+      win=tot?[tot]:[];labels=['Total'];curIdx=0;colLabel='Période';
+      rows=tot?[{label:'Total',cur:true,data:tot,delId:null}]:[];
     }else{
-      win=s.slice(Math.max(0,idx-7),idx+1);labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.length-1;evoTitle='Évolution par semaine';
+      win=s.slice(Math.max(0,idx-7),idx+1);labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.length-1;colLabel='Semaine';
+      rows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}`,cur:x.id===p.id,data:x,delId:x.id}));
     }
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
     const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined,ratioTo:d.ratioTo,ratio:d.ratio}));
+    const allTot=s.length?aggPosts(s):null;
     html=`<div style="display:grid;gap:18px"><div class="card chart">
-      <div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div>
-      <div class="card-h"><h2>${evoTitle}</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
+      <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
       ${series.length?trendChart(series,labels,curIdx):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
       ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
-      ${kpi(fmt(s.reduce((a,x)=>a+x.impressions,0)),'Impressions','Somme')}
-      ${kpi(fmt(s.reduce((a,x)=>a+x.reached,0)),'Touchées','Somme')}
-      ${kpi(fmt(s.reduce((a,x)=>a+x.engagements,0)),'Interactions','Somme')}
-      ${kpi(pctFmt(s.length?s.reduce((a,x)=>a+rate(x),0)/s.length:0),'Engagement','Moyenne')}
-      ${kpi(fmt(s.reduce((a,x)=>a+x.profileViews,0)),'Vues profil','Somme')}
+      ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme')}
+      ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme')}
+      ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme')}
+      ${kpi(pctFmt(allTot?rate(allTot):0),'Engagement','Moyenne')}
+      ${kpi(fmt(allTot?allTot.profileViews:0),'Vues profil','Somme')}
       `;})()}
     </div>
-    <div class="card"><h2>Toutes les semaines</h2><div class="tw"><table>
-      <thead><tr><th>Semaine</th><th>Impressions</th><th>Touchées</th><th>Interactions</th><th>Engagement</th><th>Vues profil</th><th class="edit-only"></th></tr></thead>
-      <tbody>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${fmt(x.engagements)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts||!isAdmin?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
+    <div class="card"><div class="tw"><table>
+      <thead><tr><th>${colLabel}</th><th>Impressions</th><th>Touchées</th><th>Interactions</th><th>Engagement</th><th>Vues profil</th><th class="edit-only"></th></tr></thead>
+      <tbody>${rows.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
     </table></div></div></div>`;
   }
   $('#main').innerHTML=html;
