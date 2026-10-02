@@ -329,7 +329,7 @@ function render(){
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
-      ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi"><span class="k-l">${label}</span><span class="k-v">${val}</span><span class="delta flat">${tag}</span></div>`;return `
+      ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
       ${kpi(fmt(s.reduce((a,x)=>a+x.impressions,0)),'Impressions','Somme')}
       ${kpi(fmt(s.reduce((a,x)=>a+x.reached,0)),'Touchées','Somme')}
       ${kpi(fmt(s.reduce((a,x)=>a+x.engagements,0)),'Interactions','Somme')}
