@@ -312,19 +312,18 @@ function render(){
             </div>
           </div>
         </section>
-        ${p.engagements?`<section class="card" style="gap:18px">
-          <div><h2>Types d'interactions</h2><span class="muted">Réactions, commentaires, republications · ${fmt(p.engagements)} au total</span></div>
+        ${p.engagements?(()=>{const itx=p.reactions+p.comments+p.reposts;return `<section class="card" style="gap:18px">
+          <div><h2>Types d'interactions</h2><span class="muted">Réactions, commentaires, republications · ${fmt(itx)} au total</span></div>
           <div class="donut-wrap">
-            ${donut([['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']],p.engagements)}
+            ${donut([['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']],itx)}
             <div class="legend">
-              ${[['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n} · ${v?Math.round(v/p.engagements*100):0}&nbsp;%</span><b>${fmt(v)}</b></div>`).join('')}
+              ${[['Réactions',p.reactions,'var(--accent-4)'],['Commentaires',p.comments,'var(--accent-3)'],['Republications',p.reposts,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n} · ${v?Math.round(v/itx*100):0}&nbsp;%</span><b>${fmt(v)}</b></div>`).join('')}
             </div>
-          </div>
-        </section>`:''}
+          </div>`;})():''}
       </div>
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
-        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc,'var(--accent-3)')}${aud('Niveau hiérarchique',d['Séniorité'],frSen,'var(--accent-4)')}${aud('Secteur',d['Secteur'],frInd,'var(--good)')}${aud('Entreprises touchées',d['Entreprise'],n=>n,'var(--hl)')}${aud('Intitulé de poste',d['Poste'],n=>n,'var(--lime)')}</div>
+        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
       </section>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
     </div>`;
