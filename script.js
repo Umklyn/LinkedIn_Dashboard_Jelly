@@ -15,7 +15,7 @@ const rate=p=>p.impressions?p.engagements/p.impressions:0;
 const EVO_DEFS=[
   {key:'impressions',name:'Impressions',color:'var(--accent-4)',type:'bar',fn:p=>p.impressions,fmtFn:fmt},
   {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'line',fn:rate,fmtFn:v=>pctFmt(v)},
-  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt,ratioTo:'impressions',ratio:100}
+  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt}
 ];
 let evoShow={impressions:true,engagement:true,views:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
@@ -291,7 +291,7 @@ function render(){
     const ipm=p.reached?p.impressions/p.reached:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
     const plural=(n,a,b)=>`${fmt(n)} ${n>1?b:a}`;
-    const aud=(t,list,tr)=>list&&list.length?`<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]))}</div>`:'';
+    const aud=(t,list,tr,color)=>list&&list.length?`<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]),color)}</div>`:'';
     const kpi=(lead,val,label,dl)=>`<div class="kpi${lead?' lead':''}"><span class="k-l">${label}</span><span class="k-v">${val}</span>${dl||''}</div>`;
     html=`<div style="display:grid;gap:26px">
       <div class="kpis">
@@ -324,7 +324,7 @@ function render(){
       </div>
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
-        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
+        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc,'var(--accent-3)')}${aud('Niveau hiérarchique',d['Séniorité'],frSen,'var(--accent-4)')}${aud('Secteur',d['Secteur'],frInd,'var(--good)')}${aud('Entreprises touchées',d['Entreprise'],n=>n,'var(--hl)')}${aud('Intitulé de poste',d['Poste'],n=>n,'var(--lime)')}</div>
       </section>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
     </div>`;
@@ -376,8 +376,8 @@ const LOC={'Brussels Metropolitan Area':'région bruxelloise','Greater Paris Met
 const frLoc=n=>LOC[n]||n;
 const IND={'Advertising Services':'Publicité','Law Practice':'Cabinets d\'avocats','Public Relations and Communications Services':'Relations publiques & com','Financial Services':'Services financiers','Marketing Services':'Marketing','IT Services and IT Consulting':'Services IT','Business Consulting and Services':'Conseil aux entreprises','Legal Services':'Services juridiques','Staffing and Recruiting':'Recrutement','Human Resources Services':'Ressources humaines','Software Development':'Développement logiciel','Higher Education':'Enseignement supérieur','Government Administration':'Administration publique','Banking':'Banque','Insurance':'Assurance'};
 const frInd=n=>IND[n]||n;
-function hbars(list){const max=Math.max(...list.map(x=>x[1]),1);
-  return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:var(--accent-3)"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
+function hbars(list,color){const max=Math.max(...list.map(x=>x[1]),1);
+  return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:${color||'var(--accent-3)'}"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
 function donut(items,total,centerVal,centerLabel,hideCenter){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
   return `<svg viewBox="0 0 160 160" role="img" aria-label="Répartition des interactions"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}${hideCenter?'':`<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(centerVal??total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">${centerLabel??'au total'}</text>`}</svg>`;}
