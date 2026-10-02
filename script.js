@@ -14,7 +14,7 @@ function dateFr(iso,opt={day:'numeric',month:'long',year:'numeric'}){return new 
 const rate=p=>p.impressions?p.engagements/p.impressions:0;
 const EVO_DEFS=[
   {key:'impressions',name:'Impressions',color:'var(--accent-4)',type:'bar',fn:p=>p.impressions,fmtFn:fmt},
-  {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'line',fn:rate,fmtFn:v=>pctFmt(v)},
+  {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'bar',fn:rate,fmtFn:v=>pctFmt(v)},
   {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt},
   {key:'interactions',name:'Interactions',color:'var(--hl)',type:'line',fn:p=>p.engagements,fmtFn:fmt}
 ];
@@ -131,31 +131,34 @@ function trendChart(series,labels,curIdx,titles){
   const startX=pl+xPad+(avail-spacing*(n-1))/2;
   const x=i=>n===1?W/2:startX+spacing*i;
   const y=v=>H-pb-(H-pt-pb)*v;
-  const bar=series.find(s=>s.type==='bar'), line=series.find(s=>s.type!=='bar');
-  const leftS=bar||series[0], rightS=series.find(s=>s!==leftS);
-  const norm=series.map(s=>({max:s.fixedMax!=null?s.fixedMax:niceMax(Math.max(...s.values,0)*1.08)}));
-  series.forEach((s,i)=>{if(s.ratioTo){const ti=series.findIndex(x=>x.key===s.ratioTo);if(ti>=0)norm[i].max=norm[ti].max/s.ratio;}});
+  const bars=series.filter(s=>s.type==='bar'), lines=series.filter(s=>s.type!=='bar');
+  const leftS=bars.find(s=>s.key!=='engagement')||bars[0], groupedS=bars.find(s=>s!==leftS);
+  const lineMax=lines.length?niceMax(Math.max(...lines.flatMap(s=>s.values),0)*1.08):1;
+  const norm=series.map(s=>({max:s.type==='bar'?(s.fixedMax!=null?s.fixedMax:niceMax(Math.max(...s.values,0)*1.08)):lineMax}));
   series.forEach((s,i)=>{norm[i].vals=s.values.map(v=>Math.min(1,(v||0)/norm[i].max));});
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
     g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
     if(leftS){const li=series.indexOf(leftS);g+=`<text x="${pl-10}" y="${yy+4}" text-anchor="end" font-size="12.5" fill="${leftS.color}" font-family="Montserrat,sans-serif">${leftS.fmtFn(norm[li].max*f)}</text>`;}
-    if(rightS){const ri=series.indexOf(rightS);g+=`<text x="${W-pr+10}" y="${yy+4}" text-anchor="start" font-size="12.5" fill="${rightS.color}" font-family="Montserrat,sans-serif">${rightS.fmtFn(norm[ri].max*f)}</text>`;}});
-  series.forEach((s,si)=>{
-    const vals=norm[si].vals;
-    if(s.type==='bar'){
-      const bw=Math.min(160,spacing*.62);
-      vals.forEach((v,i)=>{const cx=x(i),h=Math.max(2,(H-pt-pb)*v),cur=i===curIdx;
-        g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="5" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;});
-      return;
-    }
+    if(lines.length){const rColor=lines.length>1?'var(--ink-3)':lines[0].color;g+=`<text x="${W-pr+10}" y="${yy+4}" text-anchor="start" font-size="12.5" fill="${rColor}" font-family="Montserrat,sans-serif">${lines[0].fmtFn(lineMax*f)}</text>`;}});
+  if(bars.length){
+    const groupW=Math.min(160,spacing*.62),gap=4;
+    const bw=groupedS?(groupW-gap)/2:groupW;
+    bars.forEach(s=>{
+      const si=series.indexOf(s),vals=norm[si].vals;
+      const offset=!groupedS?0:(s===leftS?-(bw+gap)/2:(bw+gap)/2);
+      vals.forEach((v,i)=>{const cx=x(i)+offset,h=Math.max(2,(H-pt-pb)*v),cur=i===curIdx;
+        g+=`<rect x="${cx-bw/2}" y="${H-pb-h}" width="${bw}" height="${h}" rx="4" fill="${s.color}"${cur?'':' fill-opacity=".55"'}/>`;
+        if(s===groupedS)g+=`<text x="${cx}" y="${H-pb-h-6}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${s.color}" font-family="Montserrat,sans-serif">${s.fmtFn(s.values[i])}</text>`;});
+    });
+  }
+  lines.forEach(s=>{
+    const si=series.indexOf(s),vals=norm[si].vals;
     if(n>1){const pts=vals.map((v,i)=>[x(i),y(v)]);const d=`M${pts.map(p=>p.join(',')).join(' L')}`;
       g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;}
-    const orphan=s!==leftS&&s!==rightS;
     vals.forEach((v,i)=>{const cx=x(i),cy=y(v),cur=i===curIdx;
       g+=cur?`<circle cx="${cx}" cy="${cy}" r="8" fill="${s.color}" fill-opacity=".18"/><circle cx="${cx}" cy="${cy}" r="5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`
-        :`<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;
-      if(orphan)g+=`<text x="${cx}" y="${cy-11}" text-anchor="middle" font-size="11.5" font-weight="600" fill="${s.color}" font-family="Montserrat,sans-serif">${s.fmtFn(s.values[i])}</text>`;});
+        :`<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`;});
   });
   g+=`<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--ink-3)"/>`;
   const hw=n===1?W:spacing;
