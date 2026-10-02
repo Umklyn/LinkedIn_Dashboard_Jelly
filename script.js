@@ -20,8 +20,6 @@ const EVO_DEFS=[
 ];
 let evoShow={impressions:true,engagement:true,views:true,interactions:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
-let evoScale=1;
-try{const v=JSON.parse(localStorage.getItem('li-evo-scale'));if([.1,.5,1].includes(v))evoScale=v;}catch(e){}
 let evoSort={key:'date',dir:'desc'};
 let evoPeriod='week';
 try{const v=localStorage.getItem('li-evo-period');if(['week','month'].includes(v))evoPeriod=v;}catch(e){}
@@ -134,7 +132,7 @@ function trendChart(series,labels,curIdx,titles){
   const bars=series.filter(s=>s.type==='bar'), lines=series.filter(s=>s.type!=='bar');
   const leftS=bars.find(s=>s.key!=='engagement')||bars[0], groupedS=bars.find(s=>s!==leftS);
   const lineMax=lines.length?niceMax(Math.max(...lines.flatMap(s=>s.values),0)*1.08):1;
-  const norm=series.map(s=>({max:s.type==='bar'?(s.fixedMax!=null?s.fixedMax:niceMax(Math.max(...s.values,0)*1.08)):lineMax}));
+  const norm=series.map(s=>({max:s.type==='bar'?niceMax(Math.max(...s.values,0)*1.08):lineMax}));
   series.forEach((s,i)=>{norm[i].vals=s.values.map(v=>Math.min(1,(v||0)/norm[i].max));});
   let g='';
   [0,.25,.5,.75,1].forEach(f=>{const yy=y(f);
@@ -353,12 +351,11 @@ function render(){
       rows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
     }
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
-    const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined,ratioTo:d.ratioTo,ratio:d.ratio}));
+    const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn}));
     const cumUpTo=s.slice(0,idx+1);
     const allTot=cumUpTo.length?aggPosts(cumUpTo):null;
     html=`<div style="display:grid;gap:18px"><div class="card chart">
       <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
-      ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
       ${series.length?trendChart(series,labels,curIdx,titles):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
@@ -430,7 +427,6 @@ document.addEventListener('click',async e=>{
   const ev=e.target.closest('[data-evo]');if(ev){evoShow[ev.dataset.evo]=!evoShow[ev.dataset.evo];try{localStorage.setItem('li-evo-show',JSON.stringify(evoShow));}catch(_){}render();return;}
   const ep=e.target.closest('[data-evo-period]');if(ep){evoPeriod=ep.dataset.evoPeriod;try{localStorage.setItem('li-evo-period',evoPeriod);}catch(_){}render();return;}
   const sc=e.target.closest('[data-sort-col]');if(sc){const k=sc.dataset.sortCol;evoSort=evoSort.key===k?{key:k,dir:evoSort.dir==='asc'?'desc':'asc'}:{key:k,dir:'desc'};render();return;}
-  const es=e.target.closest('[data-evo-scale-cycle]');if(es){const opts=[.1,.5,1];evoScale=opts[(opts.indexOf(evoScale)+1)%opts.length];try{localStorage.setItem('li-evo-scale',JSON.stringify(evoScale));}catch(_){}render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
     if(d.dataset.confirm){const id=d.dataset.del;posts=posts.filter(x=>x.id!==id);try{localStorage.setItem('li-dash-cache',JSON.stringify(posts));}catch(_){}if(db){try{await db.doc('posts/'+id).delete();}catch(_){}}if(current===id)current=null;render();}
