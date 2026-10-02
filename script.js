@@ -328,9 +328,18 @@ function render(){
       ${series.length?trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
+    <div class="kpis">
+      ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi"><span class="k-l">${label}</span><span class="k-v">${val}</span><span class="delta flat">${tag}</span></div>`;return `
+      ${kpi(fmt(s.reduce((a,x)=>a+x.impressions,0)),'Impressions','Somme')}
+      ${kpi(fmt(s.reduce((a,x)=>a+x.reached,0)),'Touchées','Somme')}
+      ${kpi(fmt(s.reduce((a,x)=>a+x.engagements,0)),'Interactions','Somme')}
+      ${kpi(pctFmt(s.length?s.reduce((a,x)=>a+rate(x),0)/s.length:0),'Engagement','Moyenne')}
+      ${kpi(fmt(s.reduce((a,x)=>a+x.profileViews,0)),'Vues profil','Somme')}
+      `;})()}
+    </div>
     <div class="card"><h2>Toutes les semaines</h2><div class="tw"><table>
       <thead><tr><th>Semaine</th><th>Impressions</th><th>Touchées</th><th>Interactions</th><th>Engagement</th><th>Vues profil</th><th class="edit-only"></th></tr></thead>
-      <tbody><tr class="tw-total"><td data-tip="Total">Total</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.impressions,0))}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.reached,0))}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.engagements,0))}</td><td data-tip="Moyenne">${pctFmt(s.length?s.reduce((a,x)=>a+rate(x),0)/s.length:0)}</td><td data-tip="Somme">${fmt(s.reduce((a,x)=>a+x.profileViews,0))}</td><td class="edit-only"></td></tr>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${fmt(x.engagements)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts||!isAdmin?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
+      <tbody>${[...s].reverse().map(x=>`<tr data-id="${x.id}" class="${x.id===p.id?'cur':''}"><td>S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}</td><td>${fmt(x.impressions)}</td><td>${fmt(x.reached)}</td><td>${fmt(x.engagements)}</td><td>${pctFmt(rate(x))}</td><td>${fmt(x.profileViews)}</td><td class="edit-only">${demoPosts||!isAdmin?'':`<button class="del" type="button" data-del="${x.id}">Supprimer</button>`}</td></tr>`).join('')}</tbody>
     </table></div></div></div>`;
   }
   $('#main').innerHTML=html;
