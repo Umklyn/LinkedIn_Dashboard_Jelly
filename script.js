@@ -21,6 +21,7 @@ let evoShow={impressions:true,engagement:true,views:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
 let evoScale=1;
 try{const v=JSON.parse(localStorage.getItem('li-evo-scale'));if([.1,.5,1].includes(v))evoScale=v;}catch(e){}
+let evoSort={key:'date',dir:'desc'};
 let evoPeriod='week';
 try{const v=localStorage.getItem('li-evo-period');if(['week','month'].includes(v))evoPeriod=v;}catch(e){}
 const capFirst=s=>s?s[0].toUpperCase()+s.slice(1):s;
@@ -360,10 +361,16 @@ function render(){
       ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme depuis le début')}
       `;})()}
     </div>
-    <div class="card"><div class="tw"><table>
-      <thead><tr><th>${colLabel}</th><th>Impressions</th><th>Touchées</th><th>Interactions</th><th>Engagement</th><th>Vues profil</th><th class="edit-only"></th></tr></thead>
-      <tbody>${rows.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
-    </table></div></div></div>`;
+    ${(()=>{
+      const sortVal=r=>evoSort.key==='date'?r.data.date:evoSort.key==='rate'?rate(r.data):r.data[evoSort.key];
+      const sorted=[...rows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+      const cols=[['date',colLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
+      const arrow=k=>evoSort.key===k?(evoSort.dir==='asc'?' ▲':' ▼'):'';
+      return `<div class="card"><div class="tw"><table>
+      <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
+      <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
+    </table></div></div>`;
+    })()}</div>`;
   }
   $('#main').innerHTML=html;
   if(tab==='post'){$('#shot-file').addEventListener('change',e=>{if(e.target.files[0])setShot(e.target.files[0]);});const dl=$('#shot-del');if(dl)dl.addEventListener('click',async()=>{const q=all().find(x=>x.id===current);delete q.shot;await save(q);render();});}
@@ -413,6 +420,7 @@ document.addEventListener('click',async e=>{
   if(e.target.closest('[data-demo]')){demoPosts=makeDemo();$('#demo').hidden=false;current=null;tab='evo';try{localStorage.setItem('li-tab',tab);}catch(_){}render();return;}
   const ev=e.target.closest('[data-evo]');if(ev){evoShow[ev.dataset.evo]=!evoShow[ev.dataset.evo];try{localStorage.setItem('li-evo-show',JSON.stringify(evoShow));}catch(_){}render();return;}
   const ep=e.target.closest('[data-evo-period]');if(ep){evoPeriod=ep.dataset.evoPeriod;try{localStorage.setItem('li-evo-period',evoPeriod);}catch(_){}render();return;}
+  const sc=e.target.closest('[data-sort-col]');if(sc){const k=sc.dataset.sortCol;evoSort=evoSort.key===k?{key:k,dir:evoSort.dir==='asc'?'desc':'asc'}:{key:k,dir:'desc'};render();return;}
   const es=e.target.closest('[data-evo-scale-cycle]');if(es){const opts=[.1,.5,1];evoScale=opts[(opts.indexOf(evoScale)+1)%opts.length];try{localStorage.setItem('li-evo-scale',JSON.stringify(evoScale));}catch(_){}render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
