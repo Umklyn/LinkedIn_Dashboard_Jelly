@@ -26,7 +26,7 @@ try{const v=localStorage.getItem('li-evo-period');if(['week','month'].includes(v
 const capFirst=s=>s?s[0].toUpperCase()+s.slice(1):s;
 const monthKey=iso=>iso.slice(0,7);
 const monthLabel=key=>capFirst(new Date(key+'-01T12:00:00').toLocaleDateString('fr-BE',{month:'short',year:'2-digit'}));
-function aggPosts(list){const sum=k=>list.reduce((a,x)=>a+x[k],0);return{impressions:sum('impressions'),reached:sum('reached'),engagements:sum('engagements'),profileViews:sum('profileViews'),date:list[list.length-1].date};}
+function aggPosts(list){const sum=k=>list.reduce((a,x)=>a+x[k],0);return{impressions:sum('impressions'),reached:sum('reached'),engagements:sum('engagements'),profileViews:sum('profileViews'),followers:sum('followers'),date:list[list.length-1].date};}
 function monthlyGroups(list){const map=new Map();list.forEach(x=>{const k=monthKey(x.date);if(!map.has(k))map.set(k,[]);map.get(k).push(x);});return [...map.entries()].map(([k,g])=>({key:k,label:monthLabel(k),...aggPosts(g)}));}
 function sorted(){return [...all()].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
 function topicFromUrl(url){const m=/\/posts\/[^_]+_(.+?)-(?:ugcPost|activity|share)-/i.exec(url||'');return m?m[1].split('-').filter(w=>w.length>2).slice(0,4).map(w=>'#'+w).join(' '):'';}
@@ -107,11 +107,11 @@ async function save(p){
 function makeDemo(){
   const base=posts[0]?.demographics||{};
   const topics=['Retour sur ma formation','Mon projet SEA','Les 3 KPI que je suis','Case study','Ce que j\'apprends en agence','Un échec que j\'assume','Ma routine de veille','3 outils que j\'utilise au quotidien','Ce qui a changé ce trimestre','Derrière les coulisses','Mon bilan de rentrée','Nouveau job'];
-  const series=[[560,316,29,8],[536,303,24,7],[701,396,32,9],[684,386,35,10],[836,472,38,11],[809,457,36,10],[1019,576,53,15],[966,546,43,12],[1124,635,51,14],[1049,593,54,15],[1344,759,60,17],[1224,692,55,15],[1453,821,75,21],[1325,749,60,17],[1622,916,73,20],[1513,855,78,22],[1834,1036,83,23]];
+  const series=[[560,316,29,8,3],[536,303,24,7,2],[701,396,32,9,3],[684,386,35,10,4],[836,472,38,11,4],[809,457,36,10,4],[1019,576,53,15,5],[966,546,43,12,4],[1124,635,51,14,5],[1049,593,54,15,5],[1344,759,60,17,6],[1224,692,55,15,5],[1453,821,75,21,7],[1325,749,60,17,6],[1622,916,73,20,7],[1513,855,78,22,8],[1834,1036,83,23,8]];
   const end=new Date('2026-09-22T12:00:00');
   return series.map((s,i)=>{const d=new Date(end);d.setDate(d.getDate()-7*(series.length-1-i));const r=Math.round(s[2]*.72),c=Math.round(s[2]*.24);
     return {id:'demo'+i,date:d.toISOString().slice(0,10),time:'8:15 AM',url:'',topic:topics[i%topics.length],
-      impressions:s[0],reached:s[1],engagements:s[2],reactions:r,comments:c,reposts:s[2]-r-c,saves:0,sends:0,links:0,profileViews:s[3],followers:0,demographics:base};});
+      impressions:s[0],reached:s[1],engagements:s[2],reactions:r,comments:c,reposts:s[2]-r-c,saves:0,sends:0,links:0,profileViews:s[3],followers:s[4],demographics:base};});
 }
 
 function delta(cur,prev,isRate){
@@ -356,9 +356,9 @@ function render(){
       ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
       ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme')}
       ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme')}
+      ${kpi(fmt(allTot?allTot.followers:0),'Abonnés','Somme')}
+      ${kpi(pctFmt(allTot?rate(allTot):0),'Taux d\'engagement','Moyenne')}
       ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme')}
-      ${kpi(pctFmt(allTot?rate(allTot):0),'Engagement','Moyenne')}
-      ${kpi(fmt(allTot?allTot.profileViews:0),'Vues profil','Somme')}
       `;})()}
     </div>
     <div class="card"><div class="tw"><table>
