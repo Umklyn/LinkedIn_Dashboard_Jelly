@@ -124,7 +124,7 @@ function delta(cur,prev,isRate){
   return `<span class="delta ${c}">${d>0?'▲ +':d<0?'▼ −':'= '}${Math.abs(Math.round(d*100))} %</span>`;
 }
 
-function trendChart(series,labels,curIdx){
+function trendChart(series,labels,curIdx,titles){
   const W=1000,H=380,pl=58,pr=58,pt=24,pb=42,n=labels.length,xPad=36;
   const avail=W-pl-pr-xPad*2,maxSpacing=140;
   const spacing=n>1?Math.min(maxSpacing,avail/(n-1)):avail;
@@ -162,7 +162,8 @@ function trendChart(series,labels,curIdx){
   labels.forEach((lb,i)=>{const cx=x(i);
     g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="13" fill="${i===curIdx?'var(--ink)':'var(--ink-3)'}" font-weight="${i===curIdx?600:400}" font-family="Cambria,Caladea,Georgia,serif">${lb}</text>`;
     const tip=series.map(s=>`${esc(s.name)} : <b>${s.fmtFn(s.values[i])}</b>`).join('<br>');
-    g+=`<rect x="${cx-hw/2}" y="0" width="${hw}" height="${H}" fill="transparent" data-tip="${lb}<br>${tip}"/>`;});
+    const ttl=titles&&titles[i]?`<b>${esc(titles[i])}</b><br>`:'';
+    g+=`<rect x="${cx-hw/2}" y="0" width="${hw}" height="${H}" fill="transparent" data-tip="${ttl}${lb}<br>${tip}"/>`;});
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution combinée par semaine">${g}</svg>`;
 }
 
@@ -332,17 +333,23 @@ function render(){
   }
   if(tab==='evo'){
     const PERIODS=[['week','Hebdomadaire'],['month','Mensuel']];
-    let win,labels,curIdx,colLabel,rows;
+    let win,labels,curIdx,colLabel,rows,titles=null;
+    const sortVal=r=>evoSort.key==='date'?r.date:evoSort.key==='rate'?rate(r):r[evoSort.key];
     if(evoPeriod==='month'){
       const groups=monthlyGroups(s);
       const curKey=monthKey(p.date);
       const gi=groups.findIndex(g=>g.key===curKey);
       const from=Math.max(0,gi-7);
-      win=groups.slice(from,gi+1);labels=win.map(g=>g.label);curIdx=win.length-1;colLabel='Mois';
+      win=groups.slice(from,gi+1);
+      if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+      labels=win.map(g=>g.label);curIdx=win.findIndex(g=>g.key===curKey);colLabel='Mois';
       rows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
     }else{
-      win=s.slice(Math.max(0,idx-7),idx+1);labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.length-1;colLabel='Semaine';
-      rows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}`,cur:x.id===p.id,data:x,delId:x.id}));
+      win=s.slice(Math.max(0,idx-7),idx+1);
+      if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+      labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.findIndex(x=>x.id===p.id);colLabel='Semaine';
+      titles=win.map(x=>titleOf(x));
+      rows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
     }
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
     const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined,ratioTo:d.ratioTo,ratio:d.ratio}));
@@ -351,7 +358,7 @@ function render(){
     html=`<div style="display:grid;gap:18px"><div class="card chart">
       <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
-      ${series.length?trendChart(series,labels,curIdx):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
+      ${series.length?trendChart(series,labels,curIdx,titles):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
