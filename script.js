@@ -15,9 +15,10 @@ const rate=p=>p.impressions?p.engagements/p.impressions:0;
 const EVO_DEFS=[
   {key:'impressions',name:'Impressions',color:'var(--accent-4)',type:'bar',fn:p=>p.impressions,fmtFn:fmt},
   {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'line',fn:rate,fmtFn:v=>pctFmt(v)},
-  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt}
+  {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt},
+  {key:'interactions',name:'Interactions',color:'var(--hl)',type:'line',fn:p=>p.engagements,fmtFn:fmt}
 ];
-let evoShow={impressions:true,engagement:true,views:true};
+let evoShow={impressions:true,engagement:true,views:true,interactions:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
 let evoScale=1;
 try{const v=JSON.parse(localStorage.getItem('li-evo-scale'));if([.1,.5,1].includes(v))evoScale=v;}catch(e){}
