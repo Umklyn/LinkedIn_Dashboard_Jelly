@@ -271,9 +271,9 @@ function render(){
     $('#main').innerHTML=`<div class="empty"><img src="publicis-banner.png" alt="" class="empty-banner"><h2>Importe ton premier post</h2><p class="muted">Sur LinkedIn : ton post → Statistiques → Exporter. Puis ouvre le Calendrier et clique « Importer les stats » sur la bonne semaine.</p><p><button type="button" class="dbtn" onclick="setView('cal')">Ouvrir le calendrier</button></p>${demoPosts?'':'<p><button type="button" data-demo class="edit-only">Voir un exemple</button></p>'}</div>`;return;
   }
   $('#tabs').hidden=false;
-  current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;
+  current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;const nx=idx<s.length-1?s[idx+1]:null;
   $('#head').innerHTML=tab==='evo'?`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>Évolution</h1></div>`
-    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>${esc(titleOf(p))}</h1>
+    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-open="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-open="${nx.id}"`:'disabled'} title="Semaine suivante">→</button></span><h1>${esc(titleOf(p))}</h1>
     <div class="meta"><span>${p.origDate&&p.origDate!==p.date?`Post du ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})} · publié sur LinkedIn le ${dateFr(p.origDate,{day:'numeric',month:'long',year:'numeric'})}`:`Publié le ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})}`}</span>${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">Voir le post ↗</a>`:''}</div></div>`;
 
   let html='';

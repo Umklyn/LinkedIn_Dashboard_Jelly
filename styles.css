@@ -51,6 +51,9 @@ button:focus-visible,select:focus-visible,.btn:focus-within,textarea:focus-visib
 .wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:26px 64px;display:grid;gap:22px}
 h1{font:700 clamp(30px,4.4vw,48px)/1.08 var(--font-head);letter-spacing:-.01em;color:var(--ink);margin:0;text-wrap:balance}
 .eyebrow{font-size:14px;color:var(--ink)}
+.wknav{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:22px;height:22px;line-height:1;cursor:pointer;color:var(--ink-2);font-size:12px;vertical-align:middle;padding:0}
+.wknav:disabled{opacity:.3;cursor:default}
+.wknav:not(:disabled):hover{background:var(--surface-2);color:var(--ink)}
 .meta{color:var(--ink-3);font-size:14px;display:flex;gap:12px;flex-wrap:wrap}
 .meta a{color:var(--accent);font-weight:500}
 .status{font-size:13px;color:var(--ink-3)}
