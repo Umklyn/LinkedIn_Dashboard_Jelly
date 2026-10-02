@@ -14,9 +14,9 @@ function dateFr(iso,opt={day:'numeric',month:'long',year:'numeric'}){return new 
 const rate=p=>p.impressions?p.engagements/p.impressions:0;
 const EVO_DEFS=[
   {key:'impressions',name:'Impressions',color:'var(--accent-4)',type:'bar',fn:p=>p.impressions,fmtFn:fmt},
-  {key:'engagement',name:'Engagement',color:'var(--accent-3)',type:'bar',fn:rate,fmtFn:v=>pctFmt(v)},
+  {key:'engagement',name:'Engagement',color:'var(--hl)',type:'bar',fn:rate,fmtFn:v=>pctFmt(v)},
   {key:'views',name:'Vues du profil',color:'var(--good)',type:'line',fn:p=>p.profileViews,fmtFn:fmt},
-  {key:'interactions',name:'Interactions',color:'var(--hl)',type:'line',fn:p=>p.engagements,fmtFn:fmt}
+  {key:'interactions',name:'Interactions',color:'var(--lime)',type:'line',fn:p=>p.engagements,fmtFn:fmt}
 ];
 let evoShow={impressions:true,engagement:true,views:true,interactions:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
