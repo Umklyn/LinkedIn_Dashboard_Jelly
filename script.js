@@ -338,14 +338,12 @@ function render(){
     if(evoPeriod==='month'){
       const groups=monthlyGroups(s);
       const curKey=monthKey(p.date);
-      const gi=groups.findIndex(g=>g.key===curKey);
-      const from=Math.max(0,gi-7);
-      win=groups.slice(from,gi+1);
+      win=groups.slice(Math.max(0,groups.length-8));
       if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
       labels=win.map(g=>g.label);curIdx=win.findIndex(g=>g.key===curKey);colLabel='Mois';
       rows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
     }else{
-      win=s.slice(Math.max(0,idx-7),idx+1);
+      win=s.slice(Math.max(0,s.length-8));
       if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
       labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.findIndex(x=>x.id===p.id);colLabel='Semaine';
       titles=win.map(x=>titleOf(x));
