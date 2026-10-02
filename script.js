@@ -267,7 +267,8 @@ function render(){
   }
   $('#tabs').hidden=false;
   current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;
-  $('#head').innerHTML=`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>${esc(titleOf(p))}</h1>
+  $('#head').innerHTML=tab==='evo'?`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>Évolution</h1></div>`
+    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>${esc(titleOf(p))}</h1>
     <div class="meta"><span>${p.origDate&&p.origDate!==p.date?`Post du ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})} · publié sur LinkedIn le ${dateFr(p.origDate,{day:'numeric',month:'long',year:'numeric'})}`:`Publié le ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})}`}</span>${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">Voir le post ↗</a>`:''}</div></div>`;
 
   let html='';
