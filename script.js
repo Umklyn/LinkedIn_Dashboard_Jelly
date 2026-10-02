@@ -360,8 +360,8 @@ function render(){
       ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
-      ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
-      ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme depuis le début')}
+      ${(()=>{const kpi=(val,label,tag,lead)=>`<div class="kpi${lead?' lead':''}" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
+      ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme depuis le début',true)}
       ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme depuis le début')}
       ${kpi(pctFmt(allTot?rate(allTot):0),'Taux d\'engagement','Moyenne depuis le début')}
       ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme depuis le début')}
