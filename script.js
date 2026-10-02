@@ -356,7 +356,6 @@ function render(){
       ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
       ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme')}
       ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme')}
-      ${kpi(fmt(allTot?allTot.followers:0),'Abonnés','Somme')}
       ${kpi(pctFmt(allTot?rate(allTot):0),'Taux d\'engagement','Moyenne')}
       ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme')}
       `;})()}
