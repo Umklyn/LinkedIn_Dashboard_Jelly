@@ -106,10 +106,11 @@ async function save(p){
 
 function makeDemo(){
   const base=posts[0]?.demographics||{};
-  const series=[[820,470,31,6],[1040,610,44,9],[760,430,26,4],[1320,720,58,12],[1180,650,49,11],[1556,853,71,20]];
+  const topics=['Retour sur ma formation','Mon projet SEA','Les 3 KPI que je suis','Case study','Ce que j\'apprends en agence','Un échec que j\'assume','Ma routine de veille','3 outils que j\'utilise au quotidien','Ce qui a changé ce trimestre','Derrière les coulisses','Mon bilan de rentrée','Nouveau job'];
+  const series=[[640,360,22,5],[820,470,31,6],[705,400,27,5],[990,560,38,8],[1040,610,44,9],[880,500,33,7],[760,430,26,4],[1150,650,47,10],[1320,720,58,12],[1020,580,40,9],[1180,650,49,11],[1556,853,71,20]];
   const end=new Date('2026-09-22T12:00:00');
   return series.map((s,i)=>{const d=new Date(end);d.setDate(d.getDate()-7*(series.length-1-i));const r=Math.round(s[2]*.72),c=Math.round(s[2]*.24);
-    return {id:'demo'+i,date:d.toISOString().slice(0,10),time:'8:15 AM',url:'',topic:['Retour sur ma formation','Mon projet SEA','Les 3 KPI que je suis','Case study','Ce que j\'apprends en agence','Nouveau job'][i],
+    return {id:'demo'+i,date:d.toISOString().slice(0,10),time:'8:15 AM',url:'',topic:topics[i%topics.length],
       impressions:s[0],reached:s[1],engagements:s[2],reactions:r,comments:c,reposts:s[2]-r-c,saves:0,sends:0,links:0,profileViews:s[3],followers:0,demographics:base};});
 }
 
