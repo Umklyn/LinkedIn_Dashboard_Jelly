@@ -124,7 +124,10 @@ function delta(cur,prev,isRate){
 
 function trendChart(series,labels,curIdx){
   const W=1000,H=380,pl=58,pr=58,pt=24,pb=42,n=labels.length,xPad=36;
-  const x=i=>n===1?W/2:(pl+xPad)+(W-pl-pr-xPad*2)*i/(n-1);
+  const avail=W-pl-pr-xPad*2,maxSpacing=140;
+  const spacing=n>1?Math.min(maxSpacing,avail/(n-1)):avail;
+  const startX=pl+xPad+(avail-spacing*(n-1))/2;
+  const x=i=>n===1?W/2:startX+spacing*i;
   const y=v=>H-pb-(H-pt-pb)*v;
   const bar=series.find(s=>s.type==='bar'), line=series.find(s=>s.type!=='bar');
   const leftS=bar||series[0], rightS=series.find(s=>s!==leftS);
@@ -136,7 +139,6 @@ function trendChart(series,labels,curIdx){
     g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)" ${f?'stroke-dasharray="3 5"':''}/>`;
     if(leftS){const li=series.indexOf(leftS);g+=`<text x="${pl-10}" y="${yy+4}" text-anchor="end" font-size="12.5" fill="${leftS.color}" font-family="Montserrat,sans-serif">${leftS.fmtFn(norm[li].max*f)}</text>`;}
     if(rightS){const ri=series.indexOf(rightS);g+=`<text x="${W-pr+10}" y="${yy+4}" text-anchor="start" font-size="12.5" fill="${rightS.color}" font-family="Montserrat,sans-serif">${rightS.fmtFn(norm[ri].max*f)}</text>`;}});
-  const spacing=n>1?(W-pl-pr-xPad*2)/(n-1):W-pl-pr-xPad*2;
   series.forEach((s,si)=>{
     const vals=norm[si].vals;
     if(s.type==='bar'){
