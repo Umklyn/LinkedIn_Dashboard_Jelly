@@ -22,7 +22,7 @@ try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')
 let evoScale=1;
 try{const v=JSON.parse(localStorage.getItem('li-evo-scale'));if([.1,.5,1].includes(v))evoScale=v;}catch(e){}
 let evoPeriod='week';
-try{const v=localStorage.getItem('li-evo-period');if(['week','month','total'].includes(v))evoPeriod=v;}catch(e){}
+try{const v=localStorage.getItem('li-evo-period');if(['week','month'].includes(v))evoPeriod=v;}catch(e){}
 const capFirst=s=>s?s[0].toUpperCase()+s.slice(1):s;
 const monthKey=iso=>iso.slice(0,7);
 const monthLabel=key=>capFirst(new Date(key+'-01T12:00:00').toLocaleDateString('fr-BE',{month:'short',year:'2-digit'}));
@@ -327,7 +327,7 @@ function render(){
     </div>`;
   }
   if(tab==='evo'){
-    const PERIODS=[['week','Hebdomadaire'],['month','Mensuel'],['total','Total']];
+    const PERIODS=[['week','Hebdomadaire'],['month','Mensuel']];
     let win,labels,curIdx,colLabel,rows;
     if(evoPeriod==='month'){
       const groups=monthlyGroups(s);
@@ -336,10 +336,6 @@ function render(){
       const from=Math.max(0,gi-7);
       win=groups.slice(from,gi+1);labels=win.map(g=>g.label);curIdx=win.length-1;colLabel='Mois';
       rows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
-    }else if(evoPeriod==='total'){
-      const tot=s.length?aggPosts(s):null;
-      win=tot?[tot]:[];labels=['Total'];curIdx=0;colLabel='Période';
-      rows=tot?[{label:'Total',cur:true,data:tot,delId:null}]:[];
     }else{
       win=s.slice(Math.max(0,idx-7),idx+1);labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.length-1;colLabel='Semaine';
       rows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})}`,cur:x.id===p.id,data:x,delId:x.id}));
@@ -351,7 +347,7 @@ function render(){
       <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
       ${series.length?trendChart(series,labels,curIdx):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
-      ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et les vues mensuelle/totale sont plus parlantes avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
+      ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
       ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
