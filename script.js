@@ -345,7 +345,8 @@ function render(){
     }
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
     const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined,ratioTo:d.ratioTo,ratio:d.ratio}));
-    const allTot=s.length?aggPosts(s):null;
+    const cumUpTo=s.slice(0,idx+1);
+    const allTot=cumUpTo.length?aggPosts(cumUpTo):null;
     html=`<div style="display:grid;gap:18px"><div class="card chart">
       <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
@@ -354,10 +355,10 @@ function render(){
     </div>
     <div class="kpis">
       ${(()=>{const kpi=(val,label,tag)=>`<div class="kpi" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
-      ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme')}
-      ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme')}
-      ${kpi(pctFmt(allTot?rate(allTot):0),'Taux d\'engagement','Moyenne')}
-      ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme')}
+      ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme depuis le début')}
+      ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme depuis le début')}
+      ${kpi(pctFmt(allTot?rate(allTot):0),'Taux d\'engagement','Moyenne depuis le début')}
+      ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme depuis le début')}
       `;})()}
     </div>
     <div class="card"><div class="tw"><table>
