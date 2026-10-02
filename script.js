@@ -21,6 +21,13 @@ let evoShow={impressions:true,engagement:true,views:true};
 try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')||'{}'));}catch(e){}
 let evoScale=1;
 try{const v=JSON.parse(localStorage.getItem('li-evo-scale'));if([.1,.5,1].includes(v))evoScale=v;}catch(e){}
+let evoPeriod='week';
+try{const v=localStorage.getItem('li-evo-period');if(['week','month','total'].includes(v))evoPeriod=v;}catch(e){}
+const capFirst=s=>s?s[0].toUpperCase()+s.slice(1):s;
+const monthKey=iso=>iso.slice(0,7);
+const monthLabel=key=>capFirst(new Date(key+'-01T12:00:00').toLocaleDateString('fr-BE',{month:'short',year:'2-digit'}));
+function aggPosts(list){const sum=k=>list.reduce((a,x)=>a+x[k],0);return{impressions:sum('impressions'),reached:sum('reached'),engagements:sum('engagements'),profileViews:sum('profileViews'),date:list[list.length-1].date};}
+function monthlyGroups(list){const map=new Map();list.forEach(x=>{const k=monthKey(x.date);if(!map.has(k))map.set(k,[]);map.get(k).push(x);});return [...map.entries()].map(([k,g])=>({key:k,label:monthLabel(k),...aggPosts(g)}));}
 function sorted(){return [...all()].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
 function topicFromUrl(url){const m=/\/posts\/[^_]+_(.+?)-(?:ugcPost|activity|share)-/i.exec(url||'');return m?m[1].split('-').filter(w=>w.length>2).slice(0,4).map(w=>'#'+w).join(' '):'';}
 function embedUrl(u){u=String(u||'');const src=/src=["']([^"']+)["']/.exec(u);if(src)return src[1];
@@ -319,13 +326,25 @@ function render(){
     </div>`;
   }
   if(tab==='evo'){
-    const win=s.slice(Math.max(0,idx-7),idx+1);
+    const PERIODS=[['week','Hebdomadaire'],['month','Mensuel'],['total','Total']];
+    let win,labels,curIdx,evoTitle;
+    if(evoPeriod==='month'){
+      const groups=monthlyGroups(s);
+      const gi=groups.findIndex(g=>g.key===monthKey(p.date));
+      const from=Math.max(0,gi-7);
+      win=groups.slice(from,gi+1);labels=win.map(g=>g.label);curIdx=win.length-1;evoTitle='Évolution par mois';
+    }else if(evoPeriod==='total'){
+      win=s.length?[aggPosts(s)]:[];labels=['Total'];curIdx=0;evoTitle='Évolution totale';
+    }else{
+      win=s.slice(Math.max(0,idx-7),idx+1);labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.length-1;evoTitle='Évolution par semaine';
+    }
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
     const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn,fixedMax:d.key==='engagement'?evoScale:undefined,ratioTo:d.ratioTo,ratio:d.ratio}));
     html=`<div style="display:grid;gap:18px"><div class="card chart">
-      <div class="card-h"><h2>Évolution par semaine</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
+      <div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div>
+      <div class="card-h"><h2>${evoTitle}</h2><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${evoShow.engagement?`<div class="scale-pick"><button type="button" data-evo-scale-cycle title="Cliquer pour changer l'échelle de l'axe Engagement">Échelle Engagement : ${Math.round(evoScale*100)} %</button></div>`:''}
-      ${series.length?trendChart(series,win.map(x=>'S'+isoWeek(x.date)),win.length-1):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
+      ${series.length?trendChart(series,labels,curIdx):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<2?`<div class="hint">L'évolution apparaît dès la 2e semaine.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
     <div class="kpis">
@@ -389,6 +408,7 @@ $('#demo-off').addEventListener('click',()=>{demoPosts=null;$('#demo').hidden=tr
 document.addEventListener('click',async e=>{
   if(e.target.closest('[data-demo]')){demoPosts=makeDemo();$('#demo').hidden=false;current=null;render();return;}
   const ev=e.target.closest('[data-evo]');if(ev){evoShow[ev.dataset.evo]=!evoShow[ev.dataset.evo];try{localStorage.setItem('li-evo-show',JSON.stringify(evoShow));}catch(_){}render();return;}
+  const ep=e.target.closest('[data-evo-period]');if(ep){evoPeriod=ep.dataset.evoPeriod;try{localStorage.setItem('li-evo-period',evoPeriod);}catch(_){}render();return;}
   const es=e.target.closest('[data-evo-scale-cycle]');if(es){const opts=[.1,.5,1];evoScale=opts[(opts.indexOf(evoScale)+1)%opts.length];try{localStorage.setItem('li-evo-scale',JSON.stringify(evoScale));}catch(_){}render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
