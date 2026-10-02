@@ -229,7 +229,7 @@ h1{font:700 clamp(28px,4vw,42px)/1.12 var(--font-head);border-left:8px solid var
 h2{font:700 19px var(--font-head)}
 .delta{font:600 12px var(--font-body);border-radius:3px}
 /* audience */
-.aud3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.aud3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:28px}
 @media (max-width:860px){.aud3{grid-template-columns:1fr}}
 .aud3 h3{font:700 17px var(--font-head);margin:0 0 12px}
 .hb{gap:10px}

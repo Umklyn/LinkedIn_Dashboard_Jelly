@@ -324,7 +324,7 @@ function render(){
       </div>
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
-        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}</div>
+        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
       </section>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
     </div>`;
