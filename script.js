@@ -23,6 +23,8 @@ try{evoShow=Object.assign(evoShow,JSON.parse(localStorage.getItem('li-evo-show')
 let evoSort={key:'date',dir:'desc'};
 let evoPeriod='week';
 try{const v=localStorage.getItem('li-evo-period');if(['week','month'].includes(v))evoPeriod=v;}catch(e){}
+let evoTablePeriod='week';
+try{const v=localStorage.getItem('li-evo-table-period');if(['week','month'].includes(v))evoTablePeriod=v;}catch(e){}
 const capFirst=s=>s?s[0].toUpperCase()+s.slice(1):s;
 const monthKey=iso=>iso.slice(0,7);
 const monthLabel=key=>capFirst(new Date(key+'-01T12:00:00').toLocaleDateString('fr-BE',{month:'short',year:'2-digit'}));
@@ -334,21 +336,19 @@ function render(){
   }
   if(tab==='evo'){
     const PERIODS=[['week','Hebdomadaire'],['month','Mensuel']];
-    let win,labels,curIdx,colLabel,rows,titles=null;
+    let win,labels,curIdx,titles=null;
     const sortVal=r=>evoSort.key==='date'?r.date:evoSort.key==='rate'?rate(r):r[evoSort.key];
     if(evoPeriod==='month'){
       const groups=monthlyGroups(s);
       const curKey=monthKey(p.date);
       win=groups.slice(Math.max(0,groups.length-8));
       if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
-      labels=win.map(g=>g.label);curIdx=win.findIndex(g=>g.key===curKey);colLabel='Mois';
-      rows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
+      labels=win.map(g=>g.label);curIdx=win.findIndex(g=>g.key===curKey);
     }else{
       win=s.slice(Math.max(0,s.length-8));
       if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
-      labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.findIndex(x=>x.id===p.id);colLabel='Semaine';
+      labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.findIndex(x=>x.id===p.id);
       titles=win.map(x=>titleOf(x));
-      rows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
     }
     const active=EVO_DEFS.filter(d=>evoShow[d.key]);
     const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn}));
@@ -368,11 +368,18 @@ function render(){
       `;})()}
     </div>
     ${(()=>{
+      let tColLabel,tRows;
+      if(evoTablePeriod==='month'){
+        const groups=monthlyGroups(s);const curKey=monthKey(p.date);
+        tColLabel='Mois';tRows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
+      }else{
+        tColLabel='Semaine';tRows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
+      }
       const sortVal=r=>evoSort.key==='date'?r.data.date:evoSort.key==='rate'?rate(r.data):r.data[evoSort.key];
-      const sorted=[...rows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
-      const cols=[['date',colLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
+      const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+      const cols=[['date',tColLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
       const arrow=k=>evoSort.key===k?(evoSort.dir==='asc'?' ▲':' ▼'):'';
-      return `<div class="card"><div class="tw"><table>
+      return `<div class="card" style="gap:18px"><div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-table-period="${k}" aria-pressed="${evoTablePeriod===k}">${n}</button>`).join('')}</div></div><div class="tw"><table>
       <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
       <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
     </table></div></div>`;
@@ -426,6 +433,7 @@ document.addEventListener('click',async e=>{
   if(e.target.closest('[data-demo]')){demoPosts=makeDemo();$('#demo').hidden=false;current=null;tab='evo';try{localStorage.setItem('li-tab',tab);}catch(_){}render();return;}
   const ev=e.target.closest('[data-evo]');if(ev){evoShow[ev.dataset.evo]=!evoShow[ev.dataset.evo];try{localStorage.setItem('li-evo-show',JSON.stringify(evoShow));}catch(_){}render();return;}
   const ep=e.target.closest('[data-evo-period]');if(ep){evoPeriod=ep.dataset.evoPeriod;try{localStorage.setItem('li-evo-period',evoPeriod);}catch(_){}render();return;}
+  const etp=e.target.closest('[data-evo-table-period]');if(etp){evoTablePeriod=etp.dataset.evoTablePeriod;try{localStorage.setItem('li-evo-table-period',evoTablePeriod);}catch(_){}render();return;}
   const sc=e.target.closest('[data-sort-col]');if(sc){const k=sc.dataset.sortCol;evoSort=evoSort.key===k?{key:k,dir:evoSort.dir==='asc'?'desc':'asc'}:{key:k,dir:'desc'};render();return;}
   const d=e.target.closest('[data-del]');
   if(d){e.stopPropagation();
