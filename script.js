@@ -335,7 +335,6 @@ function render(){
     </div>`;
   }
   if(tab==='evo'){
-    const PERIODS=[['week','Hebdomadaire'],['month','Mensuel']];
     let win,labels,curIdx,titles=null;
     const sortVal=r=>evoSort.key==='date'?r.date:evoSort.key==='rate'?rate(r):r[evoSort.key];
     if(evoPeriod==='month'){
@@ -355,7 +354,7 @@ function render(){
     const cumUpTo=s.slice(0,idx+1);
     const allTot=cumUpTo.length?aggPosts(cumUpTo):null;
     html=`<div style="display:grid;gap:18px"><div class="card chart">
-      <div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-period="${k}" aria-pressed="${evoPeriod===k}">${n}</button>`).join('')}</div><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
+      <div class="card-h"><button type="button" class="period-toggle" data-evo-period="${evoPeriod==='week'?'month':'week'}">${evoPeriod==='week'?'Hebdomadaire':'Mensuel'}</button><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
       ${series.length?trendChart(series,labels,curIdx,titles):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
       ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
     </div>
@@ -379,7 +378,7 @@ function render(){
       const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
       const cols=[['date',tColLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
       const arrow=k=>evoSort.key===k?(evoSort.dir==='asc'?' ▲':' ▼'):'';
-      return `<div class="card" style="gap:18px"><div class="card-h"><div class="seg">${PERIODS.map(([k,n])=>`<button type="button" data-evo-table-period="${k}" aria-pressed="${evoTablePeriod===k}">${n}</button>`).join('')}</div></div><div class="tw"><table>
+      return `<div class="card" style="gap:18px"><div class="card-h"><button type="button" class="period-toggle" data-evo-table-period="${evoTablePeriod==='week'?'month':'week'}">${evoTablePeriod==='week'?'Hebdomadaire':'Mensuel'}</button></div><div class="tw"><table>
       <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
       <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
     </table></div></div>`;
