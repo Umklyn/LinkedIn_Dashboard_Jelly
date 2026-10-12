@@ -202,7 +202,11 @@ textarea,input[type=text]{font:15px/1.5 var(--font-body);color:var(--ink);backgr
 textarea{min-height:96px}
 
 table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
-.tw{overflow-x:auto}
+.tw{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.tw::-webkit-scrollbar{height:8px}
+.tw::-webkit-scrollbar-track{background:transparent}
+.tw::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px}
+.tw::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
 th,td{text-align:right;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
 th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600}
 th:first-child,td:first-child{text-align:left}
