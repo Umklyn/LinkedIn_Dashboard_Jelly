@@ -340,6 +340,18 @@ function render(){
     const ipm=tot.reached?tot.impressions/tot.reached:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
     const kpi=(lead,val,label)=>`<div class="kpi${lead?' lead':''}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;
+    const d=(()=>{
+      const keys=['Localisation','Séniorité','Secteur','Entreprise','Poste'];
+      const out={};
+      keys.forEach(k=>{
+        const counts={};
+        s.forEach(p=>{((p.demographics||{})[k]||[]).forEach(([n,v])=>{counts[n]=(counts[n]||0)+(v/100)*(p.reached||0);});});
+        const arr=Object.entries(counts).map(([n,c])=>[n,tot.reached?Math.round(c/tot.reached*1000)/10:0]).sort((a,b)=>b[1]-a[1]);
+        if(arr.length)out[k]=arr;
+      });
+      return out;
+    })();
+    const aud=(t,list,tr)=>list&&list.length?`<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]))}</div>`:'';
     html=`<div style="display:grid;gap:26px">
       <div class="kpis">
         ${kpi(true,fmt(tot.impressions),'Impressions totales')}
@@ -366,6 +378,10 @@ function render(){
             </div>
           </div>`;})():''}
       </div>
+      ${Object.keys(d).length?`<section class="card" style="gap:18px">
+        <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · cumulé depuis le début, en % des personnes touchées</span></div>
+        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
+      </section>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · cumul de ${s.length} semaine${s.length>1?'s':''}</span></div>
     </div>`;
   }
