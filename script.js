@@ -6,7 +6,7 @@ let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, c
 function toFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(([n,v])=>({n,v}));return out;}
 function fromFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(x=>Array.isArray(x)?x:[x.n,x.v]);return out;}
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
-if(!['res','evo'].includes(tab))tab='res';
+if(!['res','evo','today'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
 
 function isoWeek(iso){const d=new Date(iso+'T12:00:00');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7);}
@@ -276,6 +276,7 @@ function render(){
   $('#tabs').hidden=false;
   current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;const nx=idx<s.length-1?s[idx+1]:null;
   $('#head').innerHTML=tab==='evo'?`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>Évolution</h1></div>`
+    :tab==='today'?`<div style="display:grid;gap:4px"><span class="eyebrow">Bilan cumulé · Bilan LinkedIn.</span><h1>Depuis le début</h1></div>`
     :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-open="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-open="${nx.id}"`:'disabled'} title="Semaine suivante">→</button></span><h1>${esc(titleOf(p))}</h1>
     <div class="meta"><span>${p.origDate&&p.origDate!==p.date?`Post du ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})} · publié sur LinkedIn le ${dateFr(p.origDate,{day:'numeric',month:'long',year:'numeric'})}`:`Publié le ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})}`}</span>${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">Voir le post ↗</a>`:''}</div></div>`;
 
@@ -332,6 +333,40 @@ function render(){
         <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
       </section>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
+    </div>`;
+  }
+  if(tab==='today'){
+    const tot=s.reduce((a,x)=>({impressions:a.impressions+x.impressions,reached:a.reached+x.reached,engagements:a.engagements+x.engagements,profileViews:a.profileViews+x.profileViews,followers:a.followers+x.followers,reactions:a.reactions+x.reactions,comments:a.comments+x.comments,reposts:a.reposts+x.reposts}),{impressions:0,reached:0,engagements:0,profileViews:0,followers:0,reactions:0,comments:0,reposts:0});
+    const ipm=tot.reached?tot.impressions/tot.reached:null;
+    const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
+    const kpi=(lead,val,label)=>`<div class="kpi${lead?' lead':''}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;
+    html=`<div style="display:grid;gap:26px">
+      <div class="kpis">
+        ${kpi(true,fmt(tot.impressions),'Impressions totales')}
+        ${kpi(false,pctFmt(rate(tot)),'Taux d\'engagement moyen')}
+        ${kpi(false,fmt(tot.profileViews),'Vues du profil totales')}
+        ${kpi(false,fmt(tot.followers),'Abonnés gagnés')}
+      </div>
+      <div class="grid2" style="gap:22px">
+        <section class="card" style="gap:18px">
+          <div><h2>Volumes</h2><span class="muted">Cumulés depuis le début · ${s.length} semaine${s.length>1?'s':''}</span></div>
+          <div class="donut-wrap">
+            ${donut([['Impressions',tot.impressions,'var(--accent-4)'],['Personnes touchées',tot.reached,'var(--accent-3)'],['Interactions',tot.engagements,'var(--lime)']],tot.impressions+tot.reached+tot.engagements,tot.impressions,'impressions',true)}
+            <div class="legend">
+              ${[['Impressions',tot.impressions,'var(--accent-4)'],['Personnes touchées',tot.reached,'var(--accent-3)'],['Interactions',tot.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>${n==='Personnes touchées'?`<div class="muted" style="font-size:12px;margin:-4px 0 4px 18px">${n1(ipm)} impressions / personne touchée</div>`:''}`).join('')}
+            </div>
+          </div>
+        </section>
+        ${tot.engagements?(()=>{const itx=tot.reactions+tot.comments+tot.reposts;return `<section class="card" style="gap:18px">
+          <div><h2>Types d'interactions</h2><span class="muted">Réactions, commentaires, republications · ${fmt(itx)} au total</span></div>
+          <div class="donut-wrap">
+            ${donut([['Réactions',tot.reactions,'var(--accent-4)'],['Commentaires',tot.comments,'var(--accent-3)'],['Republications',tot.reposts,'var(--lime)']],itx)}
+            <div class="legend">
+              ${[['Réactions',tot.reactions,'var(--accent-4)'],['Commentaires',tot.comments,'var(--accent-3)'],['Republications',tot.reposts,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n} · ${v?Math.round(v/itx*100):0}&nbsp;%</span><b>${fmt(v)}</b></div>`).join('')}
+            </div>
+          </div>`;})():''}
+      </div>
+      <div class="source"><span>Source : LinkedIn Analytics · cumul de ${s.length} semaine${s.length>1?'s':''}</span></div>
     </div>`;
   }
   if(tab==='evo'){
