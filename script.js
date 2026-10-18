@@ -338,6 +338,9 @@ function render(){
   if(tab==='res'&&resView==='global'){
     const tot=s.reduce((a,x)=>({impressions:a.impressions+x.impressions,reached:a.reached+x.reached,engagements:a.engagements+x.engagements,profileViews:a.profileViews+x.profileViews,followers:a.followers+x.followers,reactions:a.reactions+x.reactions,comments:a.comments+x.comments,reposts:a.reposts+x.reposts}),{impressions:0,reached:0,engagements:0,profileViews:0,followers:0,reactions:0,comments:0,reposts:0});
     const ipm=tot.reached?tot.impressions/tot.reached:null;
+    const netW=s.filter(x=>x.networkPct!=null);
+    const netWeight=netW.reduce((a,x)=>a+x.impressions,0);
+    const netPct=netWeight?Math.round(netW.reduce((a,x)=>a+x.networkPct*x.impressions,0)/netWeight):null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
     const kpi=(lead,val,label)=>`<div class="kpi${lead?' lead':''}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;
     const d=(()=>{
@@ -358,6 +361,7 @@ function render(){
         ${kpi(false,pctFmt(rate(tot)),'Taux d\'engagement moyen')}
         ${kpi(false,fmt(tot.profileViews),'Vues du profil totales')}
         ${kpi(false,fmt(tot.followers),'Abonnés gagnés')}
+        ${netPct!=null?kpi(false,netPct+' %','Impressions hors du réseau'):''}
       </div>
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
