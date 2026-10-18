@@ -2,11 +2,11 @@ const $=s=>document.querySelector(s);
 const fmt=n=>n==null||isNaN(n)?'—':Math.round(n).toLocaleString('fr-BE').replace(/\u202f/g,'\u00a0');
 const pctFmt=(n,d=1)=>n==null||isNaN(n)?'—':(n*100).toLocaleString('fr-BE',{minimumFractionDigits:d,maximumFractionDigits:d})+' %';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, calLoginOpen=false, keepStatus=false;
+let posts=[], demoPosts=null, current=null, db=null, tab='res', isAdmin=false, calLoginOpen=false, keepStatus=false, resView='semaine';
 function toFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(([n,v])=>({n,v}));return out;}
 function fromFsDemo(demo){const out={};for(const k in demo||{})out[k]=demo[k].map(x=>Array.isArray(x)?x:[x.n,x.v]);return out;}
 try{tab=localStorage.getItem('li-tab')||'res';}catch(e){}
-if(!['res','evo','today'].includes(tab))tab='res';
+if(!['res','evo'].includes(tab))tab='res';
 const all=()=>demoPosts||posts;
 
 function isoWeek(iso){const d=new Date(iso+'T12:00:00');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7);}
@@ -276,8 +276,8 @@ function render(){
   $('#tabs').hidden=false;
   current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;const nx=idx<s.length-1?s[idx+1]:null;
   $('#head').innerHTML=tab==='evo'?`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>Évolution</h1></div>`
-    :tab==='today'?`<div style="display:grid;gap:4px"><span class="eyebrow">Bilan cumulé · Bilan LinkedIn.</span><h1>Depuis le début</h1></div>`
-    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-open="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-open="${nx.id}"`:'disabled'} title="Semaine suivante">→</button></span><h1>${esc(titleOf(p))}</h1>
+    :(tab==='res'&&resView==='global')?`<div style="display:grid;gap:4px"><span class="eyebrow">Bilan cumulé · Bilan LinkedIn. <button type="button" class="wknav" data-res-view="semaine" title="Revenir à la semaine">← Revenir à la semaine</button></span><h1>Depuis le début</h1></div>`
+    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-open="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-open="${nx.id}"`:'disabled'} title="Semaine suivante">→</button>${tab==='res'?`<button type="button" class="wknav" data-res-view="global" title="Voir le cumul depuis le début">Depuis le début →</button>`:''}</span><h1>${esc(titleOf(p))}</h1>
     <div class="meta"><span>${p.origDate&&p.origDate!==p.date?`Post du ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})} · publié sur LinkedIn le ${dateFr(p.origDate,{day:'numeric',month:'long',year:'numeric'})}`:`Publié le ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})}`}</span>${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">Voir le post ↗</a>`:''}</div></div>`;
 
   let html='';
@@ -293,7 +293,7 @@ function render(){
         <input type="file" id="shot-file" accept="image/*" hidden>`:''}
       </div></div>`;
   }
-  if(tab==='res'){
+  if(tab==='res'&&resView==='semaine'){
     const d=p.demographics||{};
     const ipm=p.reached?p.impressions/p.reached:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
@@ -335,7 +335,7 @@ function render(){
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
     </div>`;
   }
-  if(tab==='today'){
+  if(tab==='res'&&resView==='global'){
     const tot=s.reduce((a,x)=>({impressions:a.impressions+x.impressions,reached:a.reached+x.reached,engagements:a.engagements+x.engagements,profileViews:a.profileViews+x.profileViews,followers:a.followers+x.followers,reactions:a.reactions+x.reactions,comments:a.comments+x.comments,reposts:a.reposts+x.reposts}),{impressions:0,reached:0,engagements:0,profileViews:0,followers:0,reactions:0,comments:0,reposts:0});
     const ipm=tot.reached?tot.impressions/tot.reached:null;
     const n1=v=>v==null?'—':v.toLocaleString('fr-BE',{minimumFractionDigits:1,maximumFractionDigits:1});
@@ -457,12 +457,13 @@ const frSen=n=>SEN[n]||n;
 function go(id){current=id;if(view==='cal'){setView('dash');}else render();}
 $('#wsel').addEventListener('change',e=>{const id=e.target.value;view='dash';setView('dash');go(id);});
 document.addEventListener('click',e=>{const r=e.target.closest('[data-row]');pendingRow=r?r.dataset.row:pendingRow;},true);
-$('#home').addEventListener('click',()=>{tab='res';setView('dash');window.scrollTo({top:0});});
+$('#home').addEventListener('click',()=>{tab='res';resView='semaine';setView('dash');window.scrollTo({top:0});});
 $('#calbtn').addEventListener('click',()=>setView(view==='cal'?'dash':'cal'));
-document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o){tab='res';current=o.dataset.open;setView('dash');}});
+document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o){tab='res';resView='semaine';current=o.dataset.open;setView('dash');}});
 $('#prev').addEventListener('click',()=>{const s=sorted();const i=s.findIndex(x=>x.id===current);if(i>0)go(s[i-1].id);});
 $('#next').addEventListener('click',()=>{const s=sorted();const i=s.findIndex(x=>x.id===current);if(i<s.length-1)go(s[i+1].id);});
-$('#tabs').addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;try{localStorage.setItem('li-tab',tab);}catch(_){}render();}});
+$('#tabs').addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;resView='semaine';try{localStorage.setItem('li-tab',tab);}catch(_){}render();}});
+document.addEventListener('click',e=>{const rv=e.target.closest('[data-res-view]');if(rv){resView=rv.dataset.resView;render();}});
 $('#file').addEventListener('change',e=>{if(e.target.files.length)importFiles([...e.target.files]);e.target.value='';});
 document.addEventListener('dragover',e=>e.preventDefault());
 document.addEventListener('drop',e=>{e.preventDefault();const f=[...e.dataTransfer.files];const img=f.find(x=>x.type.startsWith('image/'));if(img){setShot(img);return;}if(f.length){pendingRow=null;importFiles(f);}});
