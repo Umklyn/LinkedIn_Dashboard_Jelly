@@ -363,6 +363,7 @@ function render(){
         ${kpi(false,fmt(tot.followers),'Abonnés gagnés')}
         ${netPct!=null?kpi(false,netPct+' %','Impressions hors du réseau'):''}
       </div>
+      ${evoChartCard(s,p)}
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
           <div><h2>Volumes</h2><span class="muted">Cumulés depuis le début · ${s.length} semaine${s.length>1?'s':''}</span></div>
@@ -386,58 +387,12 @@ function render(){
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · cumulé depuis le début, en % des personnes touchées</span></div>
         <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
       </section>`:''}
+      ${evoTableCard(s,p)}
       <div class="source"><span>Source : LinkedIn Analytics · cumul de ${s.length} semaine${s.length>1?'s':''}</span></div>
     </div>`;
   }
   if(tab==='evo'){
-    let win,labels,curIdx,titles=null;
-    const sortVal=r=>evoSort.key==='date'?r.date:evoSort.key==='rate'?rate(r):r[evoSort.key];
-    if(evoPeriod==='month'){
-      const groups=monthlyGroups(s);
-      const curKey=monthKey(p.date);
-      win=groups.slice(Math.max(0,groups.length-8));
-      if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
-      labels=win.map(g=>g.label);curIdx=win.findIndex(g=>g.key===curKey);
-    }else{
-      win=s.slice(Math.max(0,s.length-8));
-      if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
-      labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.findIndex(x=>x.id===p.id);
-      titles=win.map(x=>titleOf(x));
-    }
-    const active=EVO_DEFS.filter(d=>evoShow[d.key]);
-    const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn}));
-    const cumUpTo=s.slice(0,idx+1);
-    const allTot=cumUpTo.length?aggPosts(cumUpTo):null;
-    html=`<div style="display:grid;gap:18px"><div class="card chart">
-      <div class="card-h"><button type="button" class="period-toggle" data-evo-period="${evoPeriod==='week'?'month':'week'}">${evoPeriod==='week'?'Hebdomadaire':'Mensuel'}</button><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
-      ${series.length?trendChart(series,labels,curIdx,titles):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
-      ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
-    </div>
-    <div class="kpis">
-      ${(()=>{const kpi=(val,label,tag,lead)=>`<div class="kpi${lead?' lead':''}" data-tip="${tag}"><span class="k-l">${label}</span><span class="k-v">${val}</span></div>`;return `
-      ${kpi(fmt(allTot?allTot.impressions:0),'Impressions','Somme depuis le début',true)}
-      ${kpi(fmt(allTot?allTot.reached:0),'Touchées','Somme depuis le début')}
-      ${kpi(pctFmt(allTot?rate(allTot):0),'Taux d\'engagement','Moyenne depuis le début')}
-      ${kpi(fmt(allTot?allTot.engagements:0),'Interactions','Somme depuis le début')}
-      `;})()}
-    </div>
-    ${(()=>{
-      let tColLabel,tRows;
-      if(evoTablePeriod==='month'){
-        const groups=monthlyGroups(s);const curKey=monthKey(p.date);
-        tColLabel='Mois';tRows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
-      }else{
-        tColLabel='Semaine';tRows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
-      }
-      const sortVal=r=>evoSort.key==='date'?r.data.date:evoSort.key==='rate'?rate(r.data):r.data[evoSort.key];
-      const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
-      const cols=[['date',tColLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
-      const arrow=k=>evoSort.key===k?(evoSort.dir==='asc'?' ▲':' ▼'):'';
-      return `<div class="card" style="gap:18px"><div class="card-h"><button type="button" class="period-toggle" data-evo-table-period="${evoTablePeriod==='week'?'month':'week'}">${evoTablePeriod==='week'?'Hebdomadaire':'Mensuel'}</button></div><div class="tw"><table>
-      <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
-      <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
-    </table></div></div>`;
-    })()}</div>`;
+    html=`<div style="display:grid;gap:18px">${evoChartCard(s,p)}${evoTableCard(s,p)}</div>`;
   }
   $('#main').innerHTML=html;
   if(tab==='post'){$('#shot-file').addEventListener('change',e=>{if(e.target.files[0])setShot(e.target.files[0]);});const dl=$('#shot-del');if(dl)dl.addEventListener('click',async()=>{const q=all().find(x=>x.id===current);delete q.shot;await save(q);render();});}
@@ -456,6 +411,51 @@ function donut(items,total,centerVal,centerLabel,hideCenter){const R=62,SW=22,C=
   return `<svg viewBox="0 0 160 160" role="img" aria-label="Répartition des interactions"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}${hideCenter?'':`<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(centerVal??total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">${centerLabel??'au total'}</text>`}</svg>`;}
 const SEN={Senior:'Senior',Entry:'Junior',Manager:'Manager',Director:'Direction',Owner:'Fondateur',CXO:'Direction (CXO)',Training:'Stagiaire',VP:'VP',Partner:'Associé',Unpaid:'Bénévole'};
 const frSen=n=>SEN[n]||n;
+
+function evoSeries(s,p){
+  let win,labels,curIdx,titles=null;
+  const sortVal=r=>evoSort.key==='date'?r.date:evoSort.key==='rate'?rate(r):r[evoSort.key];
+  if(evoPeriod==='month'){
+    const groups=monthlyGroups(s);
+    const curKey=monthKey(p.date);
+    win=groups.slice(Math.max(0,groups.length-8));
+    if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+    labels=win.map(g=>g.label);curIdx=win.findIndex(g=>g.key===curKey);
+  }else{
+    win=s.slice(Math.max(0,s.length-8));
+    if(evoSort.key!=='date')win=[...win].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+    labels=win.map(x=>'S'+isoWeek(x.date));curIdx=win.findIndex(x=>x.id===p.id);
+    titles=win.map(x=>titleOf(x));
+  }
+  const active=EVO_DEFS.filter(d=>evoShow[d.key]);
+  const series=active.map(d=>({key:d.key,name:d.name,color:d.color,type:d.type,values:win.map(d.fn),fmtFn:d.fmtFn}));
+  return {labels,curIdx,titles,series};
+}
+function evoChartCard(s,p){
+  const {labels,curIdx,titles,series}=evoSeries(s,p);
+  return `<div class="card chart">
+    <div class="card-h"><button type="button" class="period-toggle" data-evo-period="${evoPeriod==='week'?'month':'week'}">${evoPeriod==='week'?'Hebdomadaire':'Mensuel'}</button><div class="seg">${EVO_DEFS.map(d=>`<button type="button" data-evo="${d.key}" aria-pressed="${!!evoShow[d.key]}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:6px;vertical-align:middle"></i>${d.name}</button>`).join('')}</div></div>
+    ${series.length?trendChart(series,labels,curIdx,titles):`<div class="hint">Choisis au moins un élément à afficher.</div>`}
+    ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
+  </div>`;
+}
+function evoTableCard(s,p){
+  let tColLabel,tRows;
+  if(evoTablePeriod==='month'){
+    const groups=monthlyGroups(s);const curKey=monthKey(p.date);
+    tColLabel='Mois';tRows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
+  }else{
+    tColLabel='Semaine';tRows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
+  }
+  const sortVal=r=>evoSort.key==='date'?r.data.date:evoSort.key==='rate'?rate(r.data):r.data[evoSort.key];
+  const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
+  const cols=[['date',tColLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
+  const arrow=k=>evoSort.key===k?(evoSort.dir==='asc'?' ▲':' ▼'):'';
+  return `<div class="card" style="gap:18px"><div class="card-h"><button type="button" class="period-toggle" data-evo-table-period="${evoTablePeriod==='week'?'month':'week'}">${evoTablePeriod==='week'?'Hebdomadaire':'Mensuel'}</button></div><div class="tw"><table>
+  <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
+  <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
 
 /* events */
 function go(id){current=id;if(view==='cal'){setView('dash');}else render();}
