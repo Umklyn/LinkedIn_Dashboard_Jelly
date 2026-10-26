@@ -330,7 +330,7 @@ function render(){
       </div>
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
-        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
+        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',mergeCompanies(d['Entreprise']),n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
       </section>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
     </div>`;
@@ -348,7 +348,7 @@ function render(){
       const out={};
       keys.forEach(k=>{
         const counts={};
-        s.forEach(p=>{((p.demographics||{})[k]||[]).forEach(([n,v])=>{counts[n]=(counts[n]||0)+(v/100)*(p.reached||0);});});
+        s.forEach(p=>{((p.demographics||{})[k]||[]).forEach(([n,v])=>{const key=k==='Entreprise'?(COMPANY_MERGE[n]||n):n;counts[key]=(counts[key]||0)+(v/100)*(p.reached||0);});});
         const arr=Object.entries(counts).map(([n,c])=>[n,tot.reached?Math.round(c/tot.reached*1000)/10:0]).sort((a,b)=>b[1]-a[1]);
         if(arr.length)out[k]=arr;
       });
@@ -411,6 +411,13 @@ function donut(items,total,centerVal,centerLabel,hideCenter){const R=62,SW=22,C=
   return `<svg viewBox="0 0 160 160" role="img" aria-label="Répartition des interactions"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}${hideCenter?'':`<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(centerVal??total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">${centerLabel??'au total'}</text>`}</svg>`;}
 const SEN={Senior:'Senior',Entry:'Junior',Manager:'Manager',Director:'Direction',Owner:'Fondateur',CXO:'Direction (CXO)',Training:'Stagiaire',VP:'VP',Partner:'Associé',Unpaid:'Bénévole'};
 const frSen=n=>SEN[n]||n;
+const COMPANY_MERGE={'Publicis Groupe Belgium':'Publicis Groupe'};
+function mergeCompanies(list){
+  if(!list)return list;
+  const map=new Map();
+  list.forEach(([n,v])=>{const key=COMPANY_MERGE[n]||n;map.set(key,(map.get(key)||0)+v);});
+  return [...map.entries()].map(([n,v])=>[n,Math.round(v*10)/10]).sort((a,b)=>b[1]-a[1]);
+}
 
 function evoSeries(s,p){
   let win,labels,curIdx,titles=null;
