@@ -275,9 +275,9 @@ function render(){
   }
   $('#tabs').hidden=false;
   current=p.id;const idx=s.indexOf(p);const pr=idx>0?s[idx-1]:null;const nx=idx<s.length-1?s[idx+1]:null;
-  $('#head').innerHTML=tab==='evo'?`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn.</span><h1>Évolution</h1></div>`
+  $('#head').innerHTML=tab==='evo'?`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-wk="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-wk="${nx.id}"`:'disabled'} title="Semaine suivante">→</button></span><h1>Évolution</h1></div>`
     :tab==='bilan'?`<div style="display:grid;gap:4px"><span class="eyebrow">Bilan cumulé · Bilan LinkedIn.</span><h1>Bilan</h1></div>`
-    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-open="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-open="${nx.id}"`:'disabled'} title="Semaine suivante">→</button></span><h1>${esc(titleOf(p))}</h1>
+    :`<div style="display:grid;gap:4px"><span class="eyebrow">Semaine ${isoWeek(p.date)} · Bilan LinkedIn. <button type="button" class="wknav" ${pr?`data-wk="${pr.id}"`:'disabled'} title="Semaine précédente">←</button><button type="button" class="wknav" ${nx?`data-wk="${nx.id}"`:'disabled'} title="Semaine suivante">→</button></span><h1>${esc(titleOf(p))}</h1>
     <div class="meta"><span>${p.origDate&&p.origDate!==p.date?`Post du ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})} · publié sur LinkedIn le ${dateFr(p.origDate,{day:'numeric',month:'long',year:'numeric'})}`:`Publié le ${dateFr(p.date,{weekday:'long',day:'numeric',month:'long'})}`}</span>${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">Voir le post ↗</a>`:''}</div></div>`;
 
   let html='';
@@ -464,6 +464,7 @@ document.addEventListener('click',e=>{const r=e.target.closest('[data-row]');pen
 $('#home').addEventListener('click',()=>{tab='bilan';setView('dash');window.scrollTo({top:0});});
 $('#calbtn').addEventListener('click',()=>setView(view==='cal'?'dash':'cal'));
 document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o){tab='res';current=o.dataset.open;setView('dash');}});
+document.addEventListener('click',e=>{const w=e.target.closest('[data-wk]');if(w)go(w.dataset.wk);});
 $('#prev').addEventListener('click',()=>{const s=sorted();const i=s.findIndex(x=>x.id===current);if(i>0)go(s[i-1].id);});
 $('#next').addEventListener('click',()=>{const s=sorted();const i=s.findIndex(x=>x.id===current);if(i<s.length-1)go(s[i+1].id);});
 $('#tabs').addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;try{localStorage.setItem('li-tab',tab);}catch(_){}render();}});
