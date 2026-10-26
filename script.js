@@ -383,11 +383,11 @@ function render(){
             </div>
           </div>`;})():''}
       </div>
+      ${evoTableCard(s,p)}
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · cumulé depuis le début, en % des personnes touchées</span></div>
         <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
       </section>`:''}
-      ${evoTableCard(s,p)}
       <div class="source"><span>Source : LinkedIn Analytics · cumul de ${s.length} semaine${s.length>1?'s':''}</span></div>
     </div>`;
   }
