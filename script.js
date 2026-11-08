@@ -461,8 +461,7 @@ function evoTableCard(s,p){
   const totalRow=`<tr class="tw-total"><td data-tip="Total">Total</td><td data-tip="Somme">${fmt(sum('impressions'))}</td><td data-tip="Somme">${fmt(sum('reached'))}</td><td data-tip="Somme">${fmt(sum('engagements'))}</td><td data-tip="Moyenne">${pctFmt(avgRate)}</td><td data-tip="Somme">${fmt(sum('profileViews'))}</td><td class="edit-only"></td></tr>`;
   return `<div class="card" style="gap:18px"><div class="card-h"><button type="button" class="period-toggle" data-evo-table-period="${evoTablePeriod==='week'?'month':'week'}">${evoTablePeriod==='week'?'Hebdomadaire':'Mensuel'}</button></div><div class="tw"><table>
   <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
-  <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
-  <tfoot>${totalRow}</tfoot>
+  <tbody>${totalRow}${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
   </table></div></div>`;
 }
 
