@@ -312,12 +312,8 @@ function render(){
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
           <div><h2>Volumes</h2><span class="muted">En nombre absolu, pour comparer les volumes</span></div>
-          <div class="donut-wrap">
-            ${donut([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']],p.impressions+p.reached+p.engagements,p.impressions,'impressions',true)}
-            <div class="legend">
-              ${[['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>${n==='Personnes touchées'?`<div class="muted" style="font-size:12px;margin:-4px 0 4px 18px">${n1(ipm)} impressions / personne touchée</div>`:''}`).join('')}
-            </div>
-          </div>
+          ${volBars([['Impressions',p.impressions,'var(--accent-4)'],['Personnes touchées',p.reached,'var(--accent-3)'],['Interactions',p.engagements,'var(--lime)']])}
+          <div class="muted" style="font-size:12px">${n1(ipm)} impressions / personne touchée</div>
         </section>
         ${p.engagements?(()=>{const itx=p.reactions+p.comments+p.reposts;return `<section class="card" style="gap:18px">
           <div><h2>Types d'interactions</h2><span class="muted">Réactions, commentaires, republications · ${fmt(itx)} au total</span></div>
@@ -367,12 +363,8 @@ function render(){
       <div class="grid2" style="gap:22px">
         <section class="card" style="gap:18px">
           <div><h2>Volumes</h2><span class="muted">Cumulés depuis le début · ${s.length} semaine${s.length>1?'s':''}</span></div>
-          <div class="donut-wrap">
-            ${donut([['Impressions',tot.impressions,'var(--accent-4)'],['Personnes touchées',tot.reached,'var(--accent-3)'],['Interactions',tot.engagements,'var(--lime)']],tot.impressions+tot.reached+tot.engagements,tot.impressions,'impressions',true)}
-            <div class="legend">
-              ${[['Impressions',tot.impressions,'var(--accent-4)'],['Personnes touchées',tot.reached,'var(--accent-3)'],['Interactions',tot.engagements,'var(--lime)']].map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${n}</span><b>${fmt(v)}</b></div>${n==='Personnes touchées'?`<div class="muted" style="font-size:12px;margin:-4px 0 4px 18px">${n1(ipm)} impressions / personne touchée</div>`:''}`).join('')}
-            </div>
-          </div>
+          ${volBars([['Impressions',tot.impressions,'var(--accent-4)'],['Personnes touchées',tot.reached,'var(--accent-3)'],['Interactions',tot.engagements,'var(--lime)']])}
+          <div class="muted" style="font-size:12px">${n1(ipm)} impressions / personne touchée</div>
         </section>
         ${tot.engagements?(()=>{const itx=tot.reactions+tot.comments+tot.reposts;return `<section class="card" style="gap:18px">
           <div><h2>Types d'interactions</h2><span class="muted">Réactions, commentaires, republications · ${fmt(itx)} au total</span></div>
@@ -406,6 +398,8 @@ const IND={'Advertising Services':'Publicité','Law Practice':'Cabinets d\'avoca
 const frInd=n=>IND[n]||n;
 function hbars(list,color){const max=Math.max(...list.map(x=>x[1]),1);
   return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:${color||'var(--accent-3)'}"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
+function volBars(items){const max=Math.max(...items.map(x=>x[1]),1);
+  return `<div class="hb">${items.map(([n,v,c])=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:${c}"></div></div><span class="hb-v">${fmt(v)}</span></div>`).join('')}</div>`;}
 function donut(items,total,centerVal,centerLabel,hideCenter){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
   return `<svg viewBox="0 0 160 160" role="img" aria-label="Répartition des interactions"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}${hideCenter?'':`<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(centerVal??total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">${centerLabel??'au total'}</text>`}</svg>`;}
