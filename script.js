@@ -375,7 +375,7 @@ function render(){
             </div>
           </div>`;})():''}
       </div>
-      ${evoTableCard(s,p)}
+      ${evoTableCard(s,p,true)}
       ${Object.keys(d).length?`<section class="card" style="gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · cumulé depuis le début, en % des personnes touchées</span></div>
         <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
@@ -444,13 +444,13 @@ function evoChartCard(s,p){
     ${s.length<4?`<div class="hint">L'évolution apparaît dès la 2e semaine, et la vue mensuelle est plus parlante avec quelques semaines de recul.${demoPosts?'':'<button type="button" data-demo class="edit-only">Voir un exemple</button>'}</div>`:''}
   </div>`;
 }
-function evoTableCard(s,p){
+function evoTableCard(s,p,noCur){
   let tColLabel,tRows;
   if(evoTablePeriod==='month'){
     const groups=monthlyGroups(s);const curKey=monthKey(p.date);
-    tColLabel='Mois';tRows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
+    tColLabel='Mois';tRows=[...groups].reverse().map(g=>({label:g.label,cur:!noCur&&g.key===curKey,data:g,delId:null}));
   }else{
-    tColLabel='Post';tRows=[...s].reverse().map(x=>({label:titleOf(x),cur:x.id===p.id,data:x,delId:x.id}));
+    tColLabel='Post';tRows=[...s].reverse().map(x=>({label:titleOf(x),cur:!noCur&&x.id===p.id,data:x,delId:x.id}));
   }
   const sortVal=r=>evoSort.key==='date'?r.data.date:evoSort.key==='rate'?rate(r.data):r.data[evoSort.key];
   const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
