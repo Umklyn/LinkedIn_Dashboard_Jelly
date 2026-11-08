@@ -407,7 +407,7 @@ function audChart(t,list,tr){
   const top=list.slice(0,5).map(([n,v],i)=>[tr(n),v,AUD_COL[i]]);
   const rest=Math.max(0,Math.round((100-top.reduce((a,x)=>a+x[1],0))*10)/10);
   const items=rest>0.05?[...top,['Autres',rest,'var(--ink-3)']]:top;
-  return `<div><h3>${t}</h3><div class="donut-wrap">${donut(items,100,null,null,true,'Répartition — '+t)}<div class="legend">${items.map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${esc(n)}</span><b>${v===.5?'&lt; 1':v}&nbsp;%</b></div>`).join('')}</div></div></div>`;
+  return `<div><h3>${t}</h3><div class="stack100" role="img" aria-label="Répartition — ${t}">${items.map(([n,v,c])=>`<div class="stack100-seg" style="width:${v}%;background:${c}" data-tip="${esc(n)} · <b>${v===.5?'&lt; 1':v}&nbsp;%</b>"></div>`).join('')}</div><div class="legend">${items.map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${esc(n)}</span><b>${v===.5?'&lt; 1':v}&nbsp;%</b></div>`).join('')}</div></div>`;
 }
 const SEN={Senior:'Senior',Entry:'Junior',Manager:'Manager',Director:'Direction',Owner:'Fondateur',CXO:'Direction (CXO)',Training:'Stagiaire',VP:'VP',Partner:'Associé',Unpaid:'Bénévole'};
 const frSen=n=>SEN[n]||n;
