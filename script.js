@@ -450,7 +450,7 @@ function evoTableCard(s,p){
     const groups=monthlyGroups(s);const curKey=monthKey(p.date);
     tColLabel='Mois';tRows=[...groups].reverse().map(g=>({label:g.label,cur:g.key===curKey,data:g,delId:null}));
   }else{
-    tColLabel='Semaine';tRows=[...s].reverse().map(x=>({label:`S${isoWeek(x.date)} · ${dateFr(x.date,{day:'numeric',month:'short'})} · ${titleOf(x)}`,cur:x.id===p.id,data:x,delId:x.id}));
+    tColLabel='Post';tRows=[...s].reverse().map(x=>({label:titleOf(x),cur:x.id===p.id,data:x,delId:x.id}));
   }
   const sortVal=r=>evoSort.key==='date'?r.data.date:evoSort.key==='rate'?rate(r.data):r.data[evoSort.key];
   const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
