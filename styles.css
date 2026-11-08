@@ -213,6 +213,7 @@ th:first-child,td:first-child{text-align:left}
 tr.cur td{background:var(--accent-soft);font-weight:600}
 tbody tr{cursor:pointer}
 .del{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.tw-total td{font-weight:700;border-top:2px solid var(--line);border-bottom:none;cursor:default}
 
 .empty{background:var(--surface);border:1px dashed var(--ink-3);border-radius:14px;padding:44px 20px;text-align:center;display:grid;gap:12px;justify-items:center}
 .empty-banner{width:120px;height:auto;margin-bottom:6px}

@@ -456,9 +456,13 @@ function evoTableCard(s,p){
   const sorted=[...tRows].sort((a,b)=>{const av=sortVal(a),bv=sortVal(b);if(av<bv)return evoSort.dir==='asc'?-1:1;if(av>bv)return evoSort.dir==='asc'?1:-1;return 0;});
   const cols=[['date',tColLabel],['impressions','Impressions'],['reached','Touchées'],['engagements','Interactions'],['rate','Engagement'],['profileViews','Vues profil']];
   const arrow=k=>evoSort.key===k?(evoSort.dir==='asc'?' ▲':' ▼'):'';
+  const sum=k=>s.reduce((a,x)=>a+x[k],0);
+  const avgRate=s.length?s.reduce((a,x)=>a+rate(x),0)/s.length:0;
+  const totalRow=`<tr class="tw-total"><td data-tip="Total">Total</td><td data-tip="Somme">${fmt(sum('impressions'))}</td><td data-tip="Somme">${fmt(sum('reached'))}</td><td data-tip="Somme">${fmt(sum('engagements'))}</td><td data-tip="Moyenne">${pctFmt(avgRate)}</td><td data-tip="Somme">${fmt(sum('profileViews'))}</td><td class="edit-only"></td></tr>`;
   return `<div class="card" style="gap:18px"><div class="card-h"><button type="button" class="period-toggle" data-evo-table-period="${evoTablePeriod==='week'?'month':'week'}">${evoTablePeriod==='week'?'Hebdomadaire':'Mensuel'}</button></div><div class="tw"><table>
   <thead><tr>${cols.map(([k,lb])=>`<th data-sort-col="${k}" style="cursor:pointer;user-select:none">${lb}${arrow(k)}</th>`).join('')}<th class="edit-only"></th></tr></thead>
   <tbody>${sorted.map(r=>`<tr ${r.delId?`data-id="${r.delId}"`:''} class="${r.cur?'cur':''}"${r.delId?'':' style="cursor:default"'}><td>${r.label}</td><td>${fmt(r.data.impressions)}</td><td>${fmt(r.data.reached)}</td><td>${fmt(r.data.engagements)}</td><td>${pctFmt(rate(r.data))}</td><td>${fmt(r.data.profileViews)}</td><td class="edit-only">${r.delId&&!demoPosts&&isAdmin?`<button class="del" type="button" data-del="${r.delId}">Supprimer</button>`:''}</td></tr>`).join('')}</tbody>
+  <tfoot>${totalRow}</tfoot>
   </table></div></div>`;
 }
 
