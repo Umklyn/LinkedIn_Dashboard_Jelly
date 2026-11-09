@@ -235,9 +235,6 @@ h1{font:700 clamp(28px,4vw,42px)/1.12 var(--font-head);border-left:8px solid var
 .kpi{border-radius:4px}
 h2{font:700 19px var(--font-head)}
 .delta{font:600 12px var(--font-body);border-radius:3px}
-/* audience */
-.aud3{display:grid;grid-template-columns:1fr;gap:28px}
-.aud3 h3{font:700 17px var(--font-head);margin:0 0 12px}
 .source{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;font-size:11.5px;color:var(--ink-3)}
 /* table */
 thead th{background:var(--brand);color:var(--brand-ink);font:700 13px var(--font-body);text-transform:none;letter-spacing:0;padding:12px 10px}

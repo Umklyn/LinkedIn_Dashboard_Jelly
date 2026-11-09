@@ -324,10 +324,10 @@ function render(){
             </div>
           </div>`;})():''}
       </div>
-      ${Object.keys(d).length?`<section class="card" style="gap:18px">
+      ${Object.keys(d).length?`<div style="display:grid;gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · en % des personnes qui ont vu le post</span></div>
-        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',mergeCompanies(d['Entreprise']),n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
-      </section>`:''}
+        <div class="grid2">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',mergeCompanies(d['Entreprise']),n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
+      </div>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · export${p.importedAt?' importé le '+dateFr(p.importedAt.slice(0,10),{day:'numeric',month:'numeric',year:'numeric'}):''}</span><span>S${isoWeek(p.date)}</span></div>
     </div>`;
   }
@@ -376,10 +376,10 @@ function render(){
           </div>`;})():''}
       </div>
       ${evoTableCard(s,p,true)}
-      ${Object.keys(d).length?`<section class="card" style="gap:18px">
+      ${Object.keys(d).length?`<div style="display:grid;gap:18px">
         <div><h2>Qui a vu le post</h2><span class="muted">Top 5 par catégorie · cumulé depuis le début, en % des personnes touchées</span></div>
-        <div class="aud3">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
-      </section>`:''}
+        <div class="grid2">${aud('Localisation',d['Localisation'],frLoc)}${aud('Niveau hiérarchique',d['Séniorité'],frSen)}${aud('Secteur',d['Secteur'],frInd)}${aud('Entreprises touchées',d['Entreprise'],n=>n)}${aud('Intitulé de poste',d['Poste'],n=>n)}</div>
+      </div>`:''}
       <div class="source"><span>Source : LinkedIn Analytics · cumul de ${s.length} semaine${s.length>1?'s':''}</span></div>
     </div>`;
   }
@@ -401,11 +401,11 @@ function volBars(items){const max=Math.max(...items.map(x=>x[1]),1);
 function donut(items,total,centerVal,centerLabel,hideCenter,ariaLabel){const R=62,SW=22,C=2*Math.PI*R;let off=0,g='';const nz=items.filter(x=>x[1]>0);
   nz.forEach(([n,v,c])=>{const len=Math.max(0,C*v/total-(nz.length>1?3:0));g+=`<circle cx="80" cy="80" r="${R}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${n} · <b>${v}</b>"/>`;off+=C*v/total;});
   return `<svg viewBox="0 0 160 160" role="img" aria-label="${ariaLabel||'Répartition des interactions'}"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>${g}${hideCenter?'':`<text x="80" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="var(--ink)" font-family="Cambria,Caladea,Georgia,serif">${fmt(centerVal??total)}</text><text x="80" y="104" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="Cambria,Caladea,Georgia,serif">${centerLabel??'au total'}</text>`}</svg>`;}
-function hbars(list,color){const max=Math.max(...list.map(x=>x[1]),1);
-  return `<div class="hb">${list.map(([n,v],i)=>`<div class="hb-row"><span class="hb-n">${esc(n)}</span><div class="hb-t"><div class="hb-f" style="width:${Math.max(3,v/max*100)}%;background:${color||'var(--accent-3)'}"></div></div><span class="hb-v">${v===.5?'&lt; 1':v} %</span></div>`).join('')}</div>`;}
+const AUD_COL=['var(--accent-4)','var(--accent-3)','var(--lime)','var(--pink)','var(--peri)'];
 function audChart(t,list,tr){
   if(!list||!list.length)return '';
-  return `<div><h3>${t}</h3>${hbars(list.slice(0,5).map(([n,v])=>[tr(n),v]))}</div>`;
+  const top=list.slice(0,5).map(([n,v],i)=>[tr(n),v,AUD_COL[i]]);
+  return `<section class="card" style="gap:16px"><h2>${t}</h2><div class="donut-wrap">${donut(top,100,null,null,true,'Répartition — '+t)}<div class="legend">${top.map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${esc(n)}</span><b>${v===.5?'&lt; 1':v}&nbsp;%</b></div>`).join('')}</div></div></section>`;
 }
 const SEN={Senior:'Senior',Entry:'Junior',Manager:'Manager',Director:'Direction',Owner:'Fondateur',CXO:'Direction (CXO)',Training:'Stagiaire',VP:'VP',Partner:'Associé',Unpaid:'Bénévole'};
 const frSen=n=>SEN[n]||n;
