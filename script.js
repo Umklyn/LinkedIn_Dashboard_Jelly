@@ -405,7 +405,9 @@ const AUD_COL=['var(--accent-4)','var(--accent-3)','var(--lime)','var(--pink)','
 function audChart(t,list,tr){
   if(!list||!list.length)return '';
   const top=list.slice(0,5).map(([n,v],i)=>[tr(n),v,AUD_COL[i]]);
-  return `<section class="card" style="gap:16px"><h2>${t}</h2><div class="donut-wrap">${donut(top,100,null,null,true,'Répartition — '+t)}<div class="legend">${top.map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${esc(n)}</span><b>${v===.5?'&lt; 1':v}&nbsp;%</b></div>`).join('')}</div></div></section>`;
+  const topTotal=top.reduce((a,x)=>a+x[1],0)||1;
+  const scaled=top.map(([n,v,c])=>[n,Math.round(v/topTotal*1000)/10,c]);
+  return `<section class="card" style="gap:16px"><div><h2>${t}</h2><span class="muted">Répartition du top 5 affiché</span></div><div class="donut-wrap">${donut(scaled,100,null,null,true,'Répartition — '+t)}<div class="legend">${scaled.map(([n,v,c])=>`<div class="lg"><i style="background:${c}"></i><span>${esc(n)}</span><b>${v}&nbsp;%</b></div>`).join('')}</div></div></section>`;
 }
 const SEN={Senior:'Senior',Entry:'Junior',Manager:'Manager',Director:'Direction',Owner:'Fondateur',CXO:'Direction (CXO)',Training:'Stagiaire',VP:'VP',Partner:'Associé',Unpaid:'Bénévole'};
 const frSen=n=>SEN[n]||n;
